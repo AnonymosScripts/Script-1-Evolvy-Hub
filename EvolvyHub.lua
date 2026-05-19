@@ -164,7 +164,7 @@ end
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "+1 Evolve Hub Premium"
-gui.ResetOnSpawn = false
+gui.ResetOnSpawn = true
 gui.Parent = player.PlayerGui
 
 ---------------------------------------------------

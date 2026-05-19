@@ -1,4 +1,4 @@
--- +1 EVOLVE HUB
+-- +1 EVOLVE HUB PREMIUM
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -163,199 +163,341 @@ end
 ---------------------------------------------------
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "+1 Evolve Hub"
+gui.Name = "+1 Evolve Hub Premium"
 gui.ResetOnSpawn = false
 gui.Parent = player.PlayerGui
 
 ---------------------------------------------------
--- FRAME
+-- MAIN FRAME
 ---------------------------------------------------
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,340,0,320)
-frame.Position = UDim2.new(0.1,0,0.25,0)
-frame.BackgroundColor3 = Color3.fromRGB(18,18,18)
+frame.Size = UDim2.new(0,380,0,450)
+frame.Position = UDim2.new(0.5,-190,0.5,-225)
+frame.BackgroundColor3 = Color3.fromRGB(12, 12, 20)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 frame.Parent = gui
 
 local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0,14)
+corner.CornerRadius = UDim.new(0,20)
 corner.Parent = frame
+
+-- Gradient Background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 35)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
+}
+gradient.Parent = frame
+
+-- Shadow Effect
+local shadow = Instance.new("Frame")
+shadow.Size = frame.Size + UDim2.new(0, 40, 0, 40)
+shadow.Position = frame.Position + UDim2.new(0, -20, 0, 20)
+shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+shadow.BackgroundTransparency = 0.6
+shadow.BorderSizePixel = 0
+shadow.ZIndex = 0
+shadow.Parent = gui
+
+local shadowCorner = Instance.new("UICorner")
+shadowCorner.CornerRadius = UDim.new(0,20)
+shadowCorner.Parent = shadow
+
+frame.ZIndex = 1
 
 ---------------------------------------------------
 -- TOPBAR
 ---------------------------------------------------
 
 local topbar = Instance.new("Frame")
-topbar.Size = UDim2.new(1,0,0,40)
-topbar.BackgroundColor3 = Color3.fromRGB(28,28,28)
+topbar.Size = UDim2.new(1,0,0,60)
+topbar.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 topbar.BorderSizePixel = 0
 topbar.Parent = frame
 
-local topcorner = Instance.new("UICorner")
-topcorner.CornerRadius = UDim.new(0,14)
-topcorner.Parent = topbar
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0,20)
+topCorner.Parent = topbar
+
+-- Gradient Topbar
+local topGradient = Instance.new("UIGradient")
+topGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 120, 200))
+}
+topGradient.Parent = topbar
 
 ---------------------------------------------------
 -- TITLE
 ---------------------------------------------------
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1,-100,1,0)
-title.Position = UDim2.new(0,12,0,0)
+title.Size = UDim2.new(1,-80,1,0)
+title.Position = UDim2.new(0,20,0,0)
 title.BackgroundTransparency = 1
-title.Text = "+1 Evolve Hub"
-title.TextColor3 = Color3.fromRGB(0,255,170)
+title.Text = "✨ EVOLVE HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
-title.TextScaled = true
+title.TextSize = 24
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = topbar
 
 ---------------------------------------------------
--- MINIMIZE
+-- MINIMIZE BUTTON
 ---------------------------------------------------
 
 local minimized = false
 
 local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.new(0,28,0,28)
-minimize.Position = UDim2.new(1,-70,0.5,-14)
-minimize.Text = "-"
+minimize.Size = UDim2.new(0,35,0,35)
+minimize.Position = UDim2.new(1,-75,0.5,-17.5)
+minimize.Text = "━"
 minimize.Font = Enum.Font.GothamBold
 minimize.TextScaled = true
-minimize.BackgroundColor3 = Color3.fromRGB(50,50,50)
+minimize.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
 minimize.TextColor3 = Color3.new(1,1,1)
+minimize.BorderSizePixel = 0
 minimize.Parent = topbar
 
-local mincorner = Instance.new("UICorner")
-mincorner.CornerRadius = UDim.new(0,8)
-mincorner.Parent = minimize
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0,10)
+minCorner.Parent = minimize
+
+minimize.MouseEnter:Connect(function()
+	minimize.BackgroundColor3 = Color3.fromRGB(0, 120, 220)
+end)
+
+minimize.MouseLeave:Connect(function()
+	minimize.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
+end)
 
 ---------------------------------------------------
--- CLOSE
+-- CLOSE BUTTON
 ---------------------------------------------------
 
 local close = Instance.new("TextButton")
-close.Size = UDim2.new(0,28,0,28)
-close.Position = UDim2.new(1,-35,0.5,-14)
-close.Text = "X"
+close.Size = UDim2.new(0,35,0,35)
+close.Position = UDim2.new(1,-35,0.5,-17.5)
+close.Text = "✕"
 close.Font = Enum.Font.GothamBold
 close.TextScaled = true
-close.BackgroundColor3 = Color3.fromRGB(255,70,70)
+close.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 close.TextColor3 = Color3.new(1,1,1)
+close.BorderSizePixel = 0
 close.Parent = topbar
 
-local closecorner = Instance.new("UICorner")
-closecorner.CornerRadius = UDim.new(0,8)
-closecorner.Parent = close
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0,10)
+closeCorner.Parent = close
+
+close.MouseEnter:Connect(function()
+	close.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+end)
+
+close.MouseLeave:Connect(function()
+	close.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+end)
 
 ---------------------------------------------------
 -- TAB BUTTONS
 ---------------------------------------------------
 
+local tabContainer = Instance.new("Frame")
+tabContainer.Size = UDim2.new(1, 0, 0, 50)
+tabContainer.Position = UDim2.new(0, 0, 0, 60)
+tabContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+tabContainer.BorderSizePixel = 0
+tabContainer.Parent = frame
+
+local tabPadding = Instance.new("UIPadding")
+tabPadding.PaddingLeft = UDim.new(0, 10)
+tabPadding.PaddingRight = UDim.new(0, 10)
+tabPadding.PaddingTop = UDim.new(0, 5)
+tabPadding.PaddingBottom = UDim.new(0, 5)
+tabPadding.Parent = tabContainer
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.Padding = UDim.new(0, 10)
+tabLayout.Parent = tabContainer
+
 local flyTab = Instance.new("TextButton")
-flyTab.Size = UDim2.new(0,140,0,35)
-flyTab.Position = UDim2.new(0,15,0,55)
-flyTab.Text = "FLY"
+flyTab.Size = UDim2.new(0.5, -5, 1, 0)
+flyTab.Text = "🚀 FLY"
 flyTab.Font = Enum.Font.GothamBold
 flyTab.TextScaled = true
-flyTab.BackgroundColor3 = Color3.fromRGB(0,170,255)
+flyTab.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 flyTab.TextColor3 = Color3.new(1,1,1)
-flyTab.Parent = frame
+flyTab.BorderSizePixel = 0
+flyTab.Parent = tabContainer
 
-local flytabcorner = Instance.new("UICorner")
-flytabcorner.CornerRadius = UDim.new(0,10)
-flytabcorner.Parent = flyTab
+local flyTabCorner = Instance.new("UICorner")
+flyTabCorner.CornerRadius = UDim.new(0,12)
+flyTabCorner.Parent = flyTab
 
 local farmTab = Instance.new("TextButton")
-farmTab.Size = UDim2.new(0,140,0,35)
-farmTab.Position = UDim2.new(0,180,0,55)
-farmTab.Text = "FARM WINS"
+farmTab.Size = UDim2.new(0.5, -5, 1, 0)
+farmTab.Text = "💰 FARM"
 farmTab.Font = Enum.Font.GothamBold
 farmTab.TextScaled = true
-farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+farmTab.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
 farmTab.TextColor3 = Color3.new(1,1,1)
-farmTab.Parent = frame
+farmTab.BorderSizePixel = 0
+farmTab.Parent = tabContainer
 
-local farmcorner = Instance.new("UICorner")
-farmcorner.CornerRadius = UDim.new(0,10)
-farmcorner.Parent = farmTab
+local farmTabCorner = Instance.new("UICorner")
+farmTabCorner.CornerRadius = UDim.new(0,12)
+farmTabCorner.Parent = farmTab
+
+---------------------------------------------------
+-- CONTENT CONTAINER
+---------------------------------------------------
+
+local contentContainer = Instance.new("Frame")
+contentContainer.Size = UDim2.new(1, 0, 1, -110)
+contentContainer.Position = UDim2.new(0, 0, 0, 110)
+contentContainer.BackgroundTransparency = 1
+contentContainer.BorderSizePixel = 0
+contentContainer.Parent = frame
+
+local contentPadding = Instance.new("UIPadding")
+contentPadding.PaddingLeft = UDim.new(0, 20)
+contentPadding.PaddingRight = UDim.new(0, 20)
+contentPadding.PaddingTop = UDim.new(0, 20)
+contentPadding.PaddingBottom = UDim.new(0, 20)
+contentPadding.Parent = contentContainer
 
 ---------------------------------------------------
 -- FLY CONTENT
 ---------------------------------------------------
 
 local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0,260,0,45)
-flyButton.Position = UDim2.new(0.5,-130,0,110)
+flyButton.Size = UDim2.new(1, 0, 0, 50)
+flyButton.Position = UDim2.new(0, 0, 0, 0)
 flyButton.Text = "FLY: OFF"
 flyButton.Font = Enum.Font.GothamBold
 flyButton.TextScaled = true
-flyButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
+flyButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 flyButton.TextColor3 = Color3.new(1,1,1)
-flyButton.Parent = frame
+flyButton.BorderSizePixel = 0
+flyButton.Parent = contentContainer
 
-local flycorner = Instance.new("UICorner")
-flycorner.CornerRadius = UDim.new(0,10)
-flycorner.Parent = flyButton
+local flyButtonCorner = Instance.new("UICorner")
+flyButtonCorner.CornerRadius = UDim.new(0,12)
+flyButtonCorner.Parent = flyButton
+
+flyButton.MouseEnter:Connect(function()
+	flyButton:TweenSize(UDim2.new(1, 5, 0, 50), "Out", "Quad", 0.2, true)
+end)
+
+flyButton.MouseLeave:Connect(function()
+	flyButton:TweenSize(UDim2.new(1, 0, 0, 50), "Out", "Quad", 0.2, true)
+end)
 
 local speedLabel = Instance.new("TextLabel")
-speedLabel.Size = UDim2.new(1,0,0,30)
-speedLabel.Position = UDim2.new(0,0,0,165)
+speedLabel.Size = UDim2.new(1, 0, 0, 35)
+speedLabel.Position = UDim2.new(0, 0, 0, 70)
 speedLabel.BackgroundTransparency = 1
-speedLabel.Text = "VELOCIDADE: "..flySpeed
+speedLabel.Text = "⚡ VELOCIDADE: " .. flySpeed
 speedLabel.Font = Enum.Font.GothamBold
 speedLabel.TextScaled = true
-speedLabel.TextColor3 = Color3.new(1,1,1)
-speedLabel.Parent = frame
+speedLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+speedLabel.Parent = contentContainer
+
+local speedControlContainer = Instance.new("Frame")
+speedControlContainer.Size = UDim2.new(1, 0, 0, 50)
+speedControlContainer.Position = UDim2.new(0, 0, 0, 115)
+speedControlContainer.BackgroundTransparency = 1
+speedControlContainer.BorderSizePixel = 0
+speedControlContainer.Parent = contentContainer
+
+local speedLayout = Instance.new("UIListLayout")
+speedLayout.FillDirection = Enum.FillDirection.Horizontal
+speedLayout.Padding = UDim.new(0, 10)
+speedLayout.Parent = speedControlContainer
 
 local minus = Instance.new("TextButton")
-minus.Size = UDim2.new(0,90,0,40)
-minus.Position = UDim2.new(0.15,0,0,205)
-minus.Text = "-"
+minus.Size = UDim2.new(0.5, -5, 1, 0)
+minus.Text = "➖"
 minus.Font = Enum.Font.GothamBold
 minus.TextScaled = true
-minus.BackgroundColor3 = Color3.fromRGB(50,50,50)
+minus.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
 minus.TextColor3 = Color3.new(1,1,1)
-minus.Parent = frame
+minus.BorderSizePixel = 0
+minus.Parent = speedControlContainer
+
+local minusCorner = Instance.new("UICorner")
+minusCorner.CornerRadius = UDim.new(0,10)
+minusCorner.Parent = minus
 
 local plus = Instance.new("TextButton")
-plus.Size = UDim2.new(0,90,0,40)
-plus.Position = UDim2.new(0.55,0,0,205)
-plus.Text = "+"
+plus.Size = UDim2.new(0.5, -5, 1, 0)
+plus.Text = "➕"
 plus.Font = Enum.Font.GothamBold
 plus.TextScaled = true
-plus.BackgroundColor3 = Color3.fromRGB(50,50,50)
+plus.BackgroundColor3 = Color3.fromRGB(0, 150, 100)
 plus.TextColor3 = Color3.new(1,1,1)
-plus.Parent = frame
+plus.BorderSizePixel = 0
+plus.Parent = speedControlContainer
+
+local plusCorner = Instance.new("UICorner")
+plusCorner.CornerRadius = UDim.new(0,10)
+plusCorner.Parent = plus
 
 ---------------------------------------------------
 -- FARM CONTENT
 ---------------------------------------------------
 
 local teleportButton = Instance.new("TextButton")
-teleportButton.Size = UDim2.new(0,260,0,45)
-teleportButton.Position = UDim2.new(0.5,-130,0,120)
-teleportButton.Text = "TELEPORTAR"
+teleportButton.Size = UDim2.new(1, 0, 0, 50)
+teleportButton.Position = UDim2.new(0, 0, 0, 20)
+teleportButton.Text = "📍 TELEPORTAR"
 teleportButton.Font = Enum.Font.GothamBold
 teleportButton.TextScaled = true
-teleportButton.BackgroundColor3 = Color3.fromRGB(0,170,255)
+teleportButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 teleportButton.TextColor3 = Color3.new(1,1,1)
+teleportButton.BorderSizePixel = 0
 teleportButton.Visible = false
-teleportButton.Parent = frame
+teleportButton.Parent = contentContainer
+
+local teleportCorner = Instance.new("UICorner")
+teleportCorner.CornerRadius = UDim.new(0,12)
+teleportCorner.Parent = teleportButton
+
+teleportButton.MouseEnter:Connect(function()
+	teleportButton:TweenSize(UDim2.new(1, 5, 0, 50), "Out", "Quad", 0.2, true)
+end)
+
+teleportButton.MouseLeave:Connect(function()
+	teleportButton:TweenSize(UDim2.new(1, 0, 0, 50), "Out", "Quad", 0.2, true)
+end)
 
 local autoButton = Instance.new("TextButton")
-autoButton.Size = UDim2.new(0,260,0,45)
-autoButton.Position = UDim2.new(0.5,-130,0,185)
+autoButton.Size = UDim2.new(1, 0, 0, 50)
+autoButton.Position = UDim2.new(0, 0, 0, 90)
 autoButton.Text = "AUTO: OFF"
 autoButton.Font = Enum.Font.GothamBold
 autoButton.TextScaled = true
-autoButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
+autoButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 autoButton.TextColor3 = Color3.new(1,1,1)
+autoButton.BorderSizePixel = 0
 autoButton.Visible = false
-autoButton.Parent = frame
+autoButton.Parent = contentContainer
+
+local autoCorner = Instance.new("UICorner")
+autoCorner.CornerRadius = UDim.new(0,12)
+autoCorner.Parent = autoButton
+
+autoButton.MouseEnter:Connect(function()
+	autoButton:TweenSize(UDim2.new(1, 5, 0, 50), "Out", "Quad", 0.2, true)
+end)
+
+autoButton.MouseLeave:Connect(function()
+	autoButton:TweenSize(UDim2.new(1, 0, 0, 50), "Out", "Quad", 0.2, true)
+end)
 
 ---------------------------------------------------
 -- TAB SYSTEM
@@ -368,25 +510,24 @@ local function updateTabs()
 
 	flyButton.Visible = flyVisible
 	speedLabel.Visible = flyVisible
-	plus.Visible = flyVisible
-	minus.Visible = flyVisible
+	speedControlContainer.Visible = flyVisible
 
 	teleportButton.Visible = farmVisible
 	autoButton.Visible = farmVisible
 
 	if flyVisible then
-		flyTab.BackgroundColor3 = Color3.fromRGB(0,170,255)
-		farmTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
+		flyTab.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+		farmTab.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
 	else
-		flyTab.BackgroundColor3 = Color3.fromRGB(40,40,40)
-		farmTab.BackgroundColor3 = Color3.fromRGB(0,170,255)
+		flyTab.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+		farmTab.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 	end
 end
 
 updateTabs()
 
 ---------------------------------------------------
--- BUTTONS
+-- BUTTONS LOGIC
 ---------------------------------------------------
 
 flyTab.MouseButton1Click:Connect(function()
@@ -405,15 +546,15 @@ flyButton.MouseButton1Click:Connect(function()
 
 		mobilefly(player)
 
-		flyButton.Text = "FLY: ON"
-		flyButton.BackgroundColor3 = Color3.fromRGB(0,200,100)
+		flyButton.Text = "FLY: ON ✓"
+		flyButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
 
 	else
 
 		unmobilefly(player)
 
 		flyButton.Text = "FLY: OFF"
-		flyButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
+		flyButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 
 	end
 end)
@@ -421,7 +562,7 @@ end)
 plus.MouseButton1Click:Connect(function()
 
 	flySpeed += 1
-	speedLabel.Text = "VELOCIDADE: "..flySpeed
+	speedLabel.Text = "⚡ VELOCIDADE: " .. flySpeed
 
 end)
 
@@ -429,7 +570,7 @@ minus.MouseButton1Click:Connect(function()
 
 	if flySpeed > 1 then
 		flySpeed -= 1
-		speedLabel.Text = "VELOCIDADE: "..flySpeed
+		speedLabel.Text = "⚡ VELOCIDADE: " .. flySpeed
 	end
 end)
 
@@ -442,11 +583,11 @@ autoButton.MouseButton1Click:Connect(function()
 	autoTeleport = not autoTeleport
 
 	if autoTeleport then
-		autoButton.Text = "AUTO: ON"
-		autoButton.BackgroundColor3 = Color3.fromRGB(0,200,100)
+		autoButton.Text = "AUTO: ON ✓"
+		autoButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
 	else
 		autoButton.Text = "AUTO: OFF"
-		autoButton.BackgroundColor3 = Color3.fromRGB(255,80,80)
+		autoButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 	end
 end)
 
@@ -478,31 +619,32 @@ minimize.MouseButton1Click:Connect(function()
 
 	if minimized then
 
-		frame.Size = UDim2.new(0,340,0,40)
-
+		frame:TweenSize(UDim2.new(0, 380, 0, 60), "Out", "Quad", 0.3, true)
+		
 		flyTab.Visible = false
 		farmTab.Visible = false
+		tabContainer.Visible = false
 
 		flyButton.Visible = false
 		speedLabel.Visible = false
-		plus.Visible = false
-		minus.Visible = false
+		speedControlContainer.Visible = false
 
 		teleportButton.Visible = false
 		autoButton.Visible = false
 
-		minimize.Text = "+"
+		minimize.Text = "☐"
 
 	else
 
-		frame.Size = UDim2.new(0,340,0,320)
+		frame:TweenSize(UDim2.new(0, 380, 0, 450), "Out", "Quad", 0.3, true)
 
-		updateTabs()
-
+		tabContainer.Visible = true
 		flyTab.Visible = true
 		farmTab.Visible = true
 
-		minimize.Text = "-"
+		updateTabs()
+
+		minimize.Text = "━"
 
 	end
 end)
@@ -514,6 +656,10 @@ end)
 close.MouseButton1Click:Connect(function()
 
 	unmobilefly(player)
+	
+	frame:TweenSize(UDim2.new(0, 380, 0, 0), "In", "Quad", 0.3, true)
+	
+	task.wait(0.3)
 	gui:Destroy()
 
 end)

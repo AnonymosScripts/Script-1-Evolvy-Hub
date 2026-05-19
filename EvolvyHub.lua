@@ -465,7 +465,7 @@ task.spawn(function()
 				teleport()
 			end)
 		end
-	end)
+	end
 end)
 
 ---------------------------------------------------

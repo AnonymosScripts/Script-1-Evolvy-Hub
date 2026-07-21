@@ -1,1721 +1,2007 @@
 -- By: @AnonymousApks_Scripts
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local function p7x1m9()
+	local Players = game:GetService("Players")
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local RunService = game:GetService("RunService")
+	local UserInputService = game:GetService("UserInputService")
 
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+	local player = Players.LocalPlayer
+	local playerGui = player:WaitForChild("PlayerGui")
 
-local WORLD_STAGE_POSITIONS = {
-	[1] = Vector3.new(7983.75, 210.10, 480.69),
-	[2] = Vector3.new(11910.93, 185.74, 971.65)
-}
+	local WORLD_STAGE_POSITIONS = {
+		[1] = Vector3.new(7983.75, 210.10, 480.69),
+		[2] = Vector3.new(11910.93, 185.74, 971.65)
+	}
 
-local selectedWorld = 1
-local worldAuto = false
-local WORLD_AUTO_INTERVAL = 2
+	local selectedWorld = 1
+	local worldAuto = false
+	local WORLD_AUTO_INTERVAL = 2
 
-local farmActive = false
-local farmSelected = nil
-local farmAnchorCFrame = nil
-local farmAnimationTrack = nil
-local farmConnection = nil
-local FARM_POSITION_TOLERANCE = 3
-local FARM_ANIMATION_SPEED = 1.1
+	local farmActive = false
+	local farmSelected = nil
+	local farmAnchorCFrame = nil
+	local farmAnimationTrack = nil
+	local farmConnection = nil
+	local FARM_POSITION_TOLERANCE = 3
+	local FARM_ANIMATION_SPEED = 1.1
 
-local bossReady = false
-local bossRemoteKnown = false
-local bossCurrentHealth = 0
-local bossMaxHealth = 0
-local bossLastHealth = nil
-local bossMyDamage = 0
-local bossOthersDamage = 0
+	local bossReady = false
+	local bossRemoteKnown = false
+	local bossCurrentHealth = 0
+	local bossMaxHealth = 0
+	local bossLastHealth = nil
+	local bossMyDamage = 0
+	local bossOthersDamage = 0
 
-local bossAuto = false
-local bossOrbIndex = 0
-local BOSS_ORB_INTERVAL = 0.35
+	local bossAuto = false
+	local bossOrbIndex = 0
+	local BOSS_ORB_INTERVAL = 0.35
 
-local MY_DAMAGE_WINDOW = 1.25
-local lastLocalOrbTouchTime = -math.huge
+	local MY_DAMAGE_WINDOW = 1.25
+	local lastLocalOrbTouchTime = -math.huge
 
-local currentTab = "General"
-local minimized = false
-local closed = false
+	local currentTab = "General"
+	local minimized = false
+	local closed = false
 
-local WINDOW_WIDTH = 390
-local TOP_CONTENT_OFFSET = 114
-local BOTTOM_PADDING = 16
-local MIN_WINDOW_HEIGHT = 360
-local MAX_WINDOW_HEIGHT = 520
+	local WINDOW_WIDTH = 390
+	local TOP_CONTENT_OFFSET = 114
+	local BOTTOM_PADDING = 16
+	local MIN_WINDOW_HEIGHT = 360
+	local MAX_WINDOW_HEIGHT = 520
 
-local HUB_SCALE_MIN = 0.65
-local HUB_SCALE_MAX = 1.20
-local HUB_SCALE_STEP = 0.05
-local hubScaleValue = 1
+	local HUB_SCALE_MIN = 0.65
+	local HUB_SCALE_MAX = 1.20
+	local HUB_SCALE_STEP = 0.05
+	local hubScaleValue = 1
 
-local COLOR_BG = Color3.fromRGB(12, 12, 20)
-local COLOR_PANEL = Color3.fromRGB(20, 21, 33)
-local COLOR_PANEL_2 = Color3.fromRGB(42, 44, 62)
-local COLOR_BLUE = Color3.fromRGB(0, 150, 255)
-local COLOR_GREEN = Color3.fromRGB(0, 200, 110)
-local COLOR_RED = Color3.fromRGB(245, 75, 90)
-local COLOR_ORANGE = Color3.fromRGB(255, 170, 70)
-local COLOR_PURPLE = Color3.fromRGB(145, 75, 230)
-local COLOR_TEXT = Color3.fromRGB(255, 255, 255)
-local COLOR_MUTED = Color3.fromRGB(155, 160, 185)
+	local COLOR_BG = Color3.fromRGB(12, 12, 20)
+	local COLOR_PANEL = Color3.fromRGB(20, 21, 33)
+	local COLOR_PANEL_2 = Color3.fromRGB(42, 44, 62)
+	local COLOR_BLUE = Color3.fromRGB(0, 150, 255)
+	local COLOR_GREEN = Color3.fromRGB(0, 200, 110)
+	local COLOR_RED = Color3.fromRGB(245, 75, 90)
+	local COLOR_ORANGE = Color3.fromRGB(255, 170, 70)
+	local COLOR_PURPLE = Color3.fromRGB(145, 75, 230)
+	local COLOR_TEXT = Color3.fromRGB(255, 255, 255)
+	local COLOR_MUTED = Color3.fromRGB(155, 160, 185)
 
-for _, name in ipairs({
-	"AnonymousHubStableBase",
-	"AnonymousHubSimpleStable",
-	"AnonymousHubModern",
-	"Anonymous_Hub"
-}) do
-	local old = playerGui:FindFirstChild(name)
-	if old then
-		old:Destroy()
-	end
-end
-
-local function addCorner(parent, radius)
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, radius)
-	corner.Parent = parent
-	return corner
-end
-
-local function addStroke(parent, color, thickness, transparency)
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = color
-	stroke.Thickness = thickness or 1
-	stroke.Transparency = transparency or 0
-	stroke.Parent = parent
-	return stroke
-end
-
-local function normalize(value)
-	return string.lower(
-		string.gsub(tostring(value or ""), "[%s_%-%./:]", "")
-	)
-end
-
-local function formatNumber(value)
-	local number = tonumber(value) or 0
-
-	if number >= 1e12 then
-		return string.format("%.2fT", number / 1e12)
-	elseif number >= 1e9 then
-		return string.format("%.2fB", number / 1e9)
-	elseif number >= 1e6 then
-		return string.format("%.2fM", number / 1e6)
-	elseif number >= 1e3 then
-		return string.format("%.2fK", number / 1e3)
-	end
-
-	if math.floor(number) == number then
-		return tostring(math.floor(number))
-	end
-
-	return string.format("%.2f", number)
-end
-
-local function getCharacter()
-	local character = player.Character
-
-	if not character or not character.Parent then
-		character = player.CharacterAdded:Wait()
-	end
-
-	return character
-end
-
-local function getHumanoid()
-	local character = getCharacter()
-	return character:FindFirstChildOfClass("Humanoid")
-		or character:WaitForChild("Humanoid", 5)
-end
-
-local function getRoot()
-	local character = getCharacter()
-	return character:FindFirstChild("HumanoidRootPart")
-		or character:WaitForChild("HumanoidRootPart", 5)
-end
-
-local function teleportToCFrame(targetCFrame)
-	local root = getRoot()
-
-	if not root then
-		return false
-	end
-
-	pcall(function()
-		root.AssemblyLinearVelocity = Vector3.zero
-		root.AssemblyAngularVelocity = Vector3.zero
-	end)
-
-	root.CFrame = targetCFrame
-	return true
-end
-
-local function getRebirths()
-	local leaderstats = player:FindFirstChild("leaderstats")
-	local rebirths = leaderstats and leaderstats:FindFirstChild("Rebirths")
-	return rebirths and tonumber(rebirths.Value) or 0
-end
-
-local function readNumber(instance, names)
-	if not instance then
-		return nil
-	end
-
-	for attributeName, attributeValue in pairs(instance:GetAttributes()) do
-		local key = normalize(attributeName)
-
-		for _, wanted in ipairs(names) do
-			if key == wanted or string.find(key, wanted, 1, true) then
-				local number = tonumber(attributeValue)
-				if number then
-					return number
-				end
-			end
-		end
-	end
-
-	for _, descendant in ipairs(instance:GetDescendants()) do
-		local key = normalize(descendant.Name)
-
-		for _, wanted in ipairs(names) do
-			if key == wanted or string.find(key, wanted, 1, true) then
-				if descendant:IsA("IntValue") or descendant:IsA("NumberValue") then
-					return tonumber(descendant.Value)
-				elseif descendant:IsA("StringValue") then
-					local number = tonumber(descendant.Value)
-					if number then
-						return number
-					end
-				end
-			end
-		end
-	end
-
-	return nil
-end
-
-local function getTexts(instance)
-	local texts = {instance and instance.Name or ""}
-
-	if not instance then
-		return texts
-	end
-
-	for _, descendant in ipairs(instance:GetDescendants()) do
-		if descendant:IsA("TextLabel")
-			or descendant:IsA("TextButton")
-			or descendant:IsA("TextBox") then
-
-			table.insert(texts, descendant.Text)
-		elseif descendant:IsA("StringValue") then
-			table.insert(texts, descendant.Value)
-		end
-	end
-
-	return texts
-end
-
-local function readNamedNumber(instance, wantedNames)
-	return readNumber(instance, wantedNames)
-end
-
-local function readTextNumber(instance, patterns)
-	for _, textValue in ipairs(getTexts(instance)) do
-		for _, pattern in ipairs(patterns) do
-			local found = string.match(string.lower(tostring(textValue)), pattern)
-
-			if found then
-				return tonumber(found)
-			end
-		end
-	end
-
-	return nil
-end
-
-local function getTreadmillPart(instance)
-	if not instance then
-		return nil
-	end
-
-	if instance:IsA("BasePart") then
-		return instance
-	end
-
-	if instance:IsA("Model")
-		and instance.PrimaryPart
-		and instance.PrimaryPart:IsA("BasePart") then
-
-		return instance.PrimaryPart
-	end
-
-	for _, preferred in ipairs({
-		"Belt",
-		"Platform",
-		"MainPart",
-		"Base",
-		"Hitbox",
-		"Treadmill"
+	for _, name in ipairs({
+		"AnonymousHubStableBase",
+		"AnonymousHubSimpleStable",
+		"AnonymousHubModern",
+		"Anonymous_Hub"
 	}) do
-		local part = instance:FindFirstChild(preferred, true)
-		if part and part:IsA("BasePart") then
-			return part
+		local old = playerGui:FindFirstChild(name)
+		if old then
+			old:Destroy()
 		end
 	end
 
-	local bestPart = nil
-	local bestArea = 0
-
-	for _, descendant in ipairs(instance:GetDescendants()) do
-		if descendant:IsA("BasePart") then
-			local area = descendant.Size.X * descendant.Size.Z
-
-			if area > bestArea then
-				bestArea = area
-				bestPart = descendant
-			end
-		end
+	local function addCorner(parent, radius)
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, radius)
+		corner.Parent = parent
+		return corner
 	end
 
-	return bestPart
-end
-
-local function isPaidTreadmill(instance)
-	if not instance then
-		return false
+	local function addStroke(parent, color, thickness, transparency)
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = color
+		stroke.Thickness = thickness or 1
+		stroke.Transparency = transparency or 0
+		stroke.Parent = parent
+		return stroke
 	end
 
-	local paidKeys = {
-		"robux",
-		"gamepass",
-		"product",
-		"developerproduct",
-		"premium",
-		"paid",
-		"purchase"
-	}
+	local function normalize(value)
+		return string.lower(
+			string.gsub(tostring(value or ""), "[%s_%-%./:]", "")
+		)
+	end
 
-	local combinedText = string.lower(instance.Name)
+	local function formatNumber(value)
+		local number = tonumber(value) or 0
 
-	for attributeName, attributeValue in pairs(instance:GetAttributes()) do
-		local key = normalize(attributeName)
-		local valueText = string.lower(tostring(attributeValue))
-
-		for _, paidKey in ipairs(paidKeys) do
-			if string.find(key, paidKey, 1, true)
-				or string.find(valueText, paidKey, 1, true) then
-
-				return true
-			end
+		if number >= 1e12 then
+			return string.format("%.2fT", number / 1e12)
+		elseif number >= 1e9 then
+			return string.format("%.2fB", number / 1e9)
+		elseif number >= 1e6 then
+			return string.format("%.2fM", number / 1e6)
+		elseif number >= 1e3 then
+			return string.format("%.2fK", number / 1e3)
 		end
 
-		if (
-			key == "isrobux"
-			or key == "isgamepass"
-			or key == "ispaid"
-			or key == "requirespurchase"
-		) and attributeValue == true then
-
-			return true
-		end
-	end
-
-	for _, value in ipairs(getTexts(instance)) do
-		combinedText ..= " " .. string.lower(value)
-	end
-
-	for _, paidKey in ipairs(paidKeys) do
-		if string.find(combinedText, paidKey, 1, true) then
-			return true
-		end
-	end
-
-	if readNamedNumber(instance, {
-		"gamepassid",
-		"productid",
-		"developerproductid",
-		"robuxprice"
-	}) then
-		return true
-	end
-
-	return false
-end
-
-local function getTreadmillInfo(instance)
-	local requirement =
-		readNamedNumber(instance, {
-			"rebirthsrequired",
-			"requiredrebirths",
-			"rebirthrequirement",
-			"rebirths",
-			"rebirth"
-		})
-		or readTextNumber(instance, {
-			"(%d+)%s*rebirth",
-			"rebirth[%a%s:_%-]*(%d+)"
-		})
-		or 0
-
-	local multiplier =
-		readNamedNumber(instance, {
-			"speedmultiplier",
-			"treadmillmultiplier",
-			"multiplier",
-			"boost"
-		})
-		or readTextNumber(instance, {
-			"[xX]%s*(%d+%.?%d*)",
-			"(%d+%.?%d*)%s*[xX]"
-		})
-		or tonumber(string.match(string.lower(instance.Name), "[xX]%s*(%d+%.?%d*)"))
-		or tonumber(string.match(string.lower(instance.Name), "(%d+%.?%d*)%s*[xX]"))
-		or 1
-
-	return {
-		Instance = instance,
-		Part = getTreadmillPart(instance),
-		Requirement = math.max(0, tonumber(requirement) or 0),
-		Multiplier = math.max(1, tonumber(multiplier) or 1),
-		Paid = isPaidTreadmill(instance)
-	}
-end
-
-local function getBestTreadmill()
-	local folder = workspace:FindFirstChild("Treadmills")
-		or workspace:FindFirstChild("Treadmills", true)
-
-	if not folder then
-		return nil
-	end
-
-	local rebirths = getRebirths()
-	local candidates = {}
-
-	local paidMultipliers = {
-		[5] = true,
-		[27] = true,
-		[100] = true
-	}
-
-	local function addCandidate(instance)
-		if not (
-			instance:IsA("Model")
-			or instance:IsA("BasePart")
-		) then
-			return
+		if math.floor(number) == number then
+			return tostring(math.floor(number))
 		end
 
-		local info = getTreadmillInfo(instance)
+		return string.format("%.2f", number)
+	end
 
-		if not info.Part then
-			return
+	local function getCharacter()
+		local character = player.Character
+
+		if not character or not character.Parent then
+			character = player.CharacterAdded:Wait()
 		end
 
-		local knownRequirementByMultiplier = {
-			[1] = 0,
-			[3] = 2,
-			[9] = 5,
-			[50] = 15
-		}
-
-		if paidMultipliers[info.Multiplier] then
-			info.Paid = true
-		end
-
-		if knownRequirementByMultiplier[info.Multiplier] ~= nil then
-			info.Requirement =
-				knownRequirementByMultiplier[info.Multiplier]
-		end
-
-		local lowerName = string.lower(instance.Name)
-
-		if string.find(lowerName, "robux", 1, true)
-			or string.find(lowerName, "gamepass", 1, true)
-			or string.find(lowerName, "paid", 1, true) then
-
-			info.Paid = true
-		end
-
-		if not info.Paid then
-			table.insert(candidates, info)
-		end
+		return character
 	end
 
-	for _, child in ipairs(folder:GetChildren()) do
-		addCandidate(child)
+	local function getHumanoid()
+		local character = getCharacter()
+		return character:FindFirstChildOfClass("Humanoid")
+			or character:WaitForChild("Humanoid", 5)
 	end
 
-	if #candidates == 0 then
-		for _, descendant in ipairs(folder:GetDescendants()) do
-			if descendant:IsA("Model") then
-				addCandidate(descendant)
-			end
-		end
+	local function getRoot()
+		local character = getCharacter()
+		return character:FindFirstChild("HumanoidRootPart")
+			or character:WaitForChild("HumanoidRootPart", 5)
 	end
 
-	local best = nil
-
-	for _, info in ipairs(candidates) do
-		if info.Requirement <= rebirths then
-			if not best
-				or info.Requirement > best.Requirement
-				or (
-					info.Requirement == best.Requirement
-					and info.Multiplier > best.Multiplier
-				) then
-
-				best = info
-			end
-		end
-	end
-
-	if rebirths <= 0 then
-		local initial = nil
-
-		for _, info in ipairs(candidates) do
-			if info.Requirement == 0
-				and info.Multiplier == 1 then
-
-				initial = info
-				break
-			end
-		end
-
-		if initial then
-			best = initial
-		end
-	end
-
-	return best
-end
-
-local function getTreadmillCFrame(info)
-	if not info or not info.Part or not info.Part:IsDescendantOf(workspace) then
-		return nil
-	end
-
-	local root = getRoot()
-	local humanoid = getHumanoid()
-
-	if not root or not humanoid then
-		return nil
-	end
-
-	local part = info.Part
-	local y =
-		part.Position.Y
-		+ (part.Size.Y / 2)
-		+ humanoid.HipHeight
-		+ (root.Size.Y / 2)
-		+ 0.1
-
-	local position = Vector3.new(part.Position.X, y, part.Position.Z)
-	local look = part.CFrame.LookVector
-
-	return CFrame.lookAt(position, position + look)
-end
-
-local function stopFarmAnimation()
-	if farmAnimationTrack then
-		pcall(function()
-			farmAnimationTrack:Stop(0.15)
-			farmAnimationTrack:Destroy()
-		end)
-
-		farmAnimationTrack = nil
-	end
-end
-
-local function playFarmAnimation()
-	stopFarmAnimation()
-
-	local humanoid = getHumanoid()
-
-	if not humanoid then
-		return false
-	end
-
-	local animator = humanoid:FindFirstChildOfClass("Animator")
-
-	if not animator then
-		animator = Instance.new("Animator")
-		animator.Parent = humanoid
-	end
-
-	local animation = Instance.new("Animation")
-	animation.AnimationId =
-		humanoid.RigType == Enum.HumanoidRigType.R6
-		and "rbxassetid://180426354"
-		or "rbxassetid://507777826"
-
-	local success, track = pcall(function()
-		return animator:LoadAnimation(animation)
-	end)
-
-	animation:Destroy()
-
-	if not success or not track then
-		return false
-	end
-
-	track.Priority = Enum.AnimationPriority.Action
-	track.Looped = true
-	track:Play(0.15, 1, FARM_ANIMATION_SPEED)
-	track:AdjustSpeed(FARM_ANIMATION_SPEED)
-
-	farmAnimationTrack = track
-	return true
-end
-
-local function stopFarm()
-	farmActive = false
-	farmSelected = nil
-	farmAnchorCFrame = nil
-
-	if farmConnection then
-		farmConnection:Disconnect()
-		farmConnection = nil
-	end
-
-	stopFarmAnimation()
-
-	local humanoid = player.Character
-		and player.Character:FindFirstChildOfClass("Humanoid")
-
-	if humanoid then
-		humanoid.AutoRotate = true
-	end
-end
-
-local function startBestFarm()
-	local best = getBestTreadmill()
-
-	if not best then
-		return false
-	end
-
-	local target = getTreadmillCFrame(best)
-
-	if not target then
-		return false
-	end
-
-	stopFarm()
-
-	local humanoid = getHumanoid()
-
-	if not humanoid then
-		return false
-	end
-
-	farmActive = true
-	farmSelected = best
-	farmAnchorCFrame = target
-	humanoid.AutoRotate = false
-
-	teleportToCFrame(target)
-	playFarmAnimation()
-
-	farmConnection = RunService.Heartbeat:Connect(function()
-		if not farmActive or not farmAnchorCFrame then
-			return
-		end
-
+	local function teleportToCFrame(targetCFrame)
 		local root = getRoot()
-		local currentHumanoid = getHumanoid()
 
-		if not root or not currentHumanoid or currentHumanoid.Health <= 0 then
-			return
-		end
-
-		if (root.Position - farmAnchorCFrame.Position).Magnitude
-			> FARM_POSITION_TOLERANCE then
-
-			root.CFrame = farmAnchorCFrame
+		if not root then
+			return false
 		end
 
 		pcall(function()
 			root.AssemblyLinearVelocity = Vector3.zero
 			root.AssemblyAngularVelocity = Vector3.zero
 		end)
-	end)
 
-	return true
-end
+		root.CFrame = targetCFrame
+		return true
+	end
 
-local function teleportSelectedWorld()
-	local root = getRoot()
-	local position = WORLD_STAGE_POSITIONS[selectedWorld]
+	local function getRebirths()
+		local leaderstats = player:FindFirstChild("leaderstats")
+		local rebirths = leaderstats and leaderstats:FindFirstChild("Rebirths")
+		return rebirths and tonumber(rebirths.Value) or 0
+	end
 
-	if not root or not position then
+	local function readNumber(instance, names)
+		if not instance then
+			return nil
+		end
+
+		for attributeName, attributeValue in pairs(instance:GetAttributes()) do
+			local key = normalize(attributeName)
+
+			for _, wanted in ipairs(names) do
+				if key == wanted or string.find(key, wanted, 1, true) then
+					local number = tonumber(attributeValue)
+					if number then
+						return number
+					end
+				end
+			end
+		end
+
+		for _, descendant in ipairs(instance:GetDescendants()) do
+			local key = normalize(descendant.Name)
+
+			for _, wanted in ipairs(names) do
+				if key == wanted or string.find(key, wanted, 1, true) then
+					if descendant:IsA("IntValue") or descendant:IsA("NumberValue") then
+						return tonumber(descendant.Value)
+					elseif descendant:IsA("StringValue") then
+						local number = tonumber(descendant.Value)
+						if number then
+							return number
+						end
+					end
+				end
+			end
+		end
+
+		return nil
+	end
+
+	local function getTexts(instance)
+		local texts = {instance and instance.Name or ""}
+
+		if not instance then
+			return texts
+		end
+
+		for _, descendant in ipairs(instance:GetDescendants()) do
+			if descendant:IsA("TextLabel")
+				or descendant:IsA("TextButton")
+				or descendant:IsA("TextBox") then
+
+				table.insert(texts, descendant.Text)
+			elseif descendant:IsA("StringValue") then
+				table.insert(texts, descendant.Value)
+			end
+		end
+
+		return texts
+	end
+
+	local function readNamedNumber(instance, wantedNames)
+		return readNumber(instance, wantedNames)
+	end
+
+	local function readTextNumber(instance, patterns)
+		for _, textValue in ipairs(getTexts(instance)) do
+			for _, pattern in ipairs(patterns) do
+				local found = string.match(string.lower(tostring(textValue)), pattern)
+
+				if found then
+					return tonumber(found)
+				end
+			end
+		end
+
+		return nil
+	end
+
+	local function getTreadmillPart(instance)
+		if not instance then
+			return nil
+		end
+
+		if instance:IsA("BasePart") then
+			return instance
+		end
+
+		if instance:IsA("Model")
+			and instance.PrimaryPart
+			and instance.PrimaryPart:IsA("BasePart") then
+
+			return instance.PrimaryPart
+		end
+
+		for _, preferred in ipairs({
+			"Belt",
+			"Platform",
+			"MainPart",
+			"Base",
+			"Hitbox",
+			"Treadmill"
+		}) do
+			local part = instance:FindFirstChild(preferred, true)
+			if part and part:IsA("BasePart") then
+				return part
+			end
+		end
+
+		local bestPart = nil
+		local bestArea = 0
+
+		for _, descendant in ipairs(instance:GetDescendants()) do
+			if descendant:IsA("BasePart") then
+				local area = descendant.Size.X * descendant.Size.Z
+
+				if area > bestArea then
+					bestArea = area
+					bestPart = descendant
+				end
+			end
+		end
+
+		return bestPart
+	end
+
+	local function isPaidTreadmill(instance)
+		if not instance then
+			return false
+		end
+
+		local paidKeys = {
+			"robux",
+			"gamepass",
+			"product",
+			"developerproduct",
+			"premium",
+			"paid",
+			"purchase"
+		}
+
+		local combinedText = string.lower(instance.Name)
+
+		for attributeName, attributeValue in pairs(instance:GetAttributes()) do
+			local key = normalize(attributeName)
+			local valueText = string.lower(tostring(attributeValue))
+
+			for _, paidKey in ipairs(paidKeys) do
+				if string.find(key, paidKey, 1, true)
+					or string.find(valueText, paidKey, 1, true) then
+
+					return true
+				end
+			end
+
+			if (
+				key == "isrobux"
+				or key == "isgamepass"
+				or key == "ispaid"
+				or key == "requirespurchase"
+			) and attributeValue == true then
+
+				return true
+			end
+		end
+
+		for _, value in ipairs(getTexts(instance)) do
+			combinedText ..= " " .. string.lower(value)
+		end
+
+		for _, paidKey in ipairs(paidKeys) do
+			if string.find(combinedText, paidKey, 1, true) then
+				return true
+			end
+		end
+
+		if readNamedNumber(instance, {
+			"gamepassid",
+			"productid",
+			"developerproductid",
+			"robuxprice"
+		}) then
+			return true
+		end
+
 		return false
 	end
 
-	return teleportToCFrame(
-		CFrame.new(position) * root.CFrame.Rotation
-	)
-end
+	local function getTreadmillInfo(instance)
+		local requirement =
+			readNamedNumber(instance, {
+				"rebirthsrequired",
+				"requiredrebirths",
+				"rebirthrequirement",
+				"rebirths",
+				"rebirth"
+			})
+			or readTextNumber(instance, {
+				"(%d+)%s*rebirth",
+				"rebirth[%a%s:_%-]*(%d+)"
+			})
+			or 0
 
-local function isDamageOrbName(name)
-	return string.find(normalize(name), "damageorb", 1, true) ~= nil
-end
+		local multiplier =
+			readNamedNumber(instance, {
+				"speedmultiplier",
+				"treadmillmultiplier",
+				"multiplier",
+				"boost"
+			})
+			or readTextNumber(instance, {
+				"[xX]%s*(%d+%.?%d*)",
+				"(%d+%.?%d*)%s*[xX]"
+			})
+			or tonumber(string.match(string.lower(instance.Name), "[xX]%s*(%d+%.?%d*)"))
+			or tonumber(string.match(string.lower(instance.Name), "(%d+%.?%d*)%s*[xX]"))
+			or 1
 
-local function getOrbPart(instance)
-	if instance:IsA("BasePart") then
-		return instance
-	elseif instance:IsA("Model") then
-		if instance.PrimaryPart then
-			return instance.PrimaryPart
+		return {
+			Instance = instance,
+			Part = getTreadmillPart(instance),
+			Requirement = math.max(0, tonumber(requirement) or 0),
+			Multiplier = math.max(1, tonumber(multiplier) or 1),
+			Paid = isPaidTreadmill(instance)
+		}
+	end
+
+	local function getBestTreadmill()
+		local folder = workspace:FindFirstChild("Treadmills")
+			or workspace:FindFirstChild("Treadmills", true)
+
+		if not folder then
+			return nil
+		end
+
+		local rebirths = getRebirths()
+		local candidates = {}
+
+		local paidMultipliers = {
+			[5] = true,
+			[27] = true,
+			[100] = true
+		}
+
+		local function addCandidate(instance)
+			if not (
+				instance:IsA("Model")
+				or instance:IsA("BasePart")
+			) then
+				return
+			end
+
+			local info = getTreadmillInfo(instance)
+
+			if not info.Part then
+				return
+			end
+
+			local knownRequirementByMultiplier = {
+				[1] = 0,
+				[3] = 2,
+				[9] = 5,
+				[50] = 15
+			}
+
+			if paidMultipliers[info.Multiplier] then
+				info.Paid = true
+			end
+
+			if knownRequirementByMultiplier[info.Multiplier] ~= nil then
+				info.Requirement =
+					knownRequirementByMultiplier[info.Multiplier]
+			end
+
+			local lowerName = string.lower(instance.Name)
+
+			if string.find(lowerName, "robux", 1, true)
+				or string.find(lowerName, "gamepass", 1, true)
+				or string.find(lowerName, "paid", 1, true) then
+
+				info.Paid = true
+			end
+
+			if not info.Paid then
+				table.insert(candidates, info)
+			end
+		end
+
+		for _, child in ipairs(folder:GetChildren()) do
+			addCandidate(child)
+		end
+
+		if #candidates == 0 then
+			for _, descendant in ipairs(folder:GetDescendants()) do
+				if descendant:IsA("Model") then
+					addCandidate(descendant)
+				end
+			end
+		end
+
+		local best = nil
+
+		for _, info in ipairs(candidates) do
+			if info.Requirement <= rebirths then
+				if not best
+					or info.Requirement > best.Requirement
+					or (
+						info.Requirement == best.Requirement
+						and info.Multiplier > best.Multiplier
+					) then
+
+					best = info
+				end
+			end
+		end
+
+		if rebirths <= 0 then
+			local initial = nil
+
+			for _, info in ipairs(candidates) do
+				if info.Requirement == 0
+					and info.Multiplier == 1 then
+
+					initial = info
+					break
+				end
+			end
+
+			if initial then
+				best = initial
+			end
+		end
+
+		return best
+	end
+
+	local function getTreadmillCFrame(info)
+		if not info or not info.Part or not info.Part:IsDescendantOf(workspace) then
+			return nil
+		end
+
+		local root = getRoot()
+		local humanoid = getHumanoid()
+
+		if not root or not humanoid then
+			return nil
+		end
+
+		local part = info.Part
+		local y =
+			part.Position.Y
+			+ (part.Size.Y / 2)
+			+ humanoid.HipHeight
+			+ (root.Size.Y / 2)
+			+ 0.1
+
+		local position = Vector3.new(part.Position.X, y, part.Position.Z)
+		local look = part.CFrame.LookVector
+
+		return CFrame.lookAt(position, position + look)
+	end
+
+	local function stopFarmAnimation()
+		if farmAnimationTrack then
+			pcall(function()
+				farmAnimationTrack:Stop(0.15)
+				farmAnimationTrack:Destroy()
+			end)
+
+			farmAnimationTrack = nil
+		end
+	end
+
+	local function playFarmAnimation()
+		stopFarmAnimation()
+
+		local humanoid = getHumanoid()
+
+		if not humanoid then
+			return false
+		end
+
+		local animator = humanoid:FindFirstChildOfClass("Animator")
+
+		if not animator then
+			animator = Instance.new("Animator")
+			animator.Parent = humanoid
+		end
+
+		local animation = Instance.new("Animation")
+		animation.AnimationId =
+			humanoid.RigType == Enum.HumanoidRigType.R6
+			and "rbxassetid://180426354"
+			or "rbxassetid://507777826"
+
+		local success, track = pcall(function()
+			return animator:LoadAnimation(animation)
+		end)
+
+		animation:Destroy()
+
+		if not success or not track then
+			return false
+		end
+
+		track.Priority = Enum.AnimationPriority.Action
+		track.Looped = true
+		track:Play(0.15, 1, FARM_ANIMATION_SPEED)
+		track:AdjustSpeed(FARM_ANIMATION_SPEED)
+
+		farmAnimationTrack = track
+		return true
+	end
+
+	local function stopFarm()
+		farmActive = false
+		farmSelected = nil
+		farmAnchorCFrame = nil
+
+		if farmConnection then
+			farmConnection:Disconnect()
+			farmConnection = nil
+		end
+
+		stopFarmAnimation()
+
+		local humanoid = player.Character
+			and player.Character:FindFirstChildOfClass("Humanoid")
+
+		if humanoid then
+			humanoid.AutoRotate = true
+		end
+	end
+
+	local function startBestFarm()
+		local best = getBestTreadmill()
+
+		if not best then
+			return false
+		end
+
+		local target = getTreadmillCFrame(best)
+
+		if not target then
+			return false
+		end
+
+		stopFarm()
+
+		local humanoid = getHumanoid()
+
+		if not humanoid then
+			return false
+		end
+
+		farmActive = true
+		farmSelected = best
+		farmAnchorCFrame = target
+		humanoid.AutoRotate = false
+
+		teleportToCFrame(target)
+		playFarmAnimation()
+
+		farmConnection = RunService.Heartbeat:Connect(function()
+			if not farmActive or not farmAnchorCFrame then
+				return
+			end
+
+			local root = getRoot()
+			local currentHumanoid = getHumanoid()
+
+			if not root or not currentHumanoid or currentHumanoid.Health <= 0 then
+				return
+			end
+
+			if (root.Position - farmAnchorCFrame.Position).Magnitude
+				> FARM_POSITION_TOLERANCE then
+
+				root.CFrame = farmAnchorCFrame
+			end
+
+			pcall(function()
+				root.AssemblyLinearVelocity = Vector3.zero
+				root.AssemblyAngularVelocity = Vector3.zero
+			end)
+		end)
+
+		return true
+	end
+
+	local function teleportSelectedWorld()
+		local root = getRoot()
+		local position = WORLD_STAGE_POSITIONS[selectedWorld]
+
+		if not root or not position then
+			return false
+		end
+
+		return teleportToCFrame(
+			CFrame.new(position) * root.CFrame.Rotation
+		)
+	end
+
+	local function isDamageOrbName(name)
+		return string.find(normalize(name), "damageorb", 1, true) ~= nil
+	end
+
+	local function getOrbPart(instance)
+		if instance:IsA("BasePart") then
+			return instance
+		elseif instance:IsA("Model") then
+			if instance.PrimaryPart then
+				return instance.PrimaryPart
+			end
+
+			return instance:FindFirstChildWhichIsA("BasePart", true)
 		end
 
 		return instance:FindFirstChildWhichIsA("BasePart", true)
 	end
 
-	return instance:FindFirstChildWhichIsA("BasePart", true)
-end
+	local function getDamageOrbs()
+		local list = {}
+		local seen = {}
 
-local function getDamageOrbs()
-	local list = {}
-	local seen = {}
+		for _, descendant in ipairs(workspace:GetDescendants()) do
+			if (
+				descendant:IsA("Model")
+				or descendant:IsA("BasePart")
+			) and isDamageOrbName(descendant.Name) then
 
-	for _, descendant in ipairs(workspace:GetDescendants()) do
-		if (
-			descendant:IsA("Model")
-			or descendant:IsA("BasePart")
-		) and isDamageOrbName(descendant.Name) then
+				local part = getOrbPart(descendant)
 
-			local part = getOrbPart(descendant)
+				if part and not seen[part] then
+					seen[part] = true
 
-			if part and not seen[part] then
-				seen[part] = true
-
-				table.insert(list, {
-					Instance = descendant,
-					Part = part
-				})
+					table.insert(list, {
+						Instance = descendant,
+						Part = part
+					})
+				end
 			end
 		end
+
+		return list
 	end
 
-	return list
-end
+	local function teleportNearestOrb()
+		local root = getRoot()
 
-local function teleportNearestOrb()
-	local root = getRoot()
-
-	if not root then
-		return false
-	end
-
-	local nearest = nil
-	local nearestDistance = math.huge
-
-	for _, orb in ipairs(getDamageOrbs()) do
-		local distance = (root.Position - orb.Part.Position).Magnitude
-
-		if distance < nearestDistance then
-			nearestDistance = distance
-			nearest = orb
+		if not root then
+			return false
 		end
+
+		local nearest = nil
+		local nearestDistance = math.huge
+
+		for _, orb in ipairs(getDamageOrbs()) do
+			local distance = (root.Position - orb.Part.Position).Magnitude
+
+			if distance < nearestDistance then
+				nearestDistance = distance
+				nearest = orb
+			end
+		end
+
+		if not nearest then
+			return false
+		end
+
+		local success = teleportToCFrame(
+			CFrame.new(nearest.Part.Position) * root.CFrame.Rotation
+		)
+
+		if success then
+			lastLocalOrbTouchTime = os.clock()
+		end
+
+		return success
 	end
 
-	if not nearest then
-		return false
+	local function teleportNextOrb()
+		local orbs = getDamageOrbs()
+
+		if #orbs == 0 then
+			bossOrbIndex = 0
+			return false
+		end
+
+		bossOrbIndex += 1
+
+		if bossOrbIndex > #orbs then
+			bossOrbIndex = 1
+		end
+
+		local root = getRoot()
+
+		if not root then
+			return false
+		end
+
+		local success = teleportToCFrame(
+			CFrame.new(orbs[bossOrbIndex].Part.Position)
+				* root.CFrame.Rotation
+		)
+
+		if success then
+			lastLocalOrbTouchTime = os.clock()
+		end
+
+		return success
 	end
 
-	local success = teleportToCFrame(
-		CFrame.new(nearest.Part.Position) * root.CFrame.Rotation
-	)
+	local function getBossRemote()
+		local modules = ReplicatedStorage:FindFirstChild("Modules")
+		local shared = modules and modules:FindFirstChild("Shared")
+		local serviceScript = shared and shared:FindFirstChild("RemoteEventService")
 
-	if success then
-		lastLocalOrbTouchTime = os.clock()
-	end
+		if not serviceScript then
+			return nil
+		end
 
-	return success
-end
+		local direct = serviceScript:FindFirstChild("BossFightRemoteEvent")
 
-local function teleportNextOrb()
-	local orbs = getDamageOrbs()
+		if direct and direct:IsA("RemoteEvent") then
+			return direct
+		end
 
-	if #orbs == 0 then
-		bossOrbIndex = 0
-		return false
-	end
+		local success, service = pcall(require, serviceScript)
 
-	bossOrbIndex += 1
+		if success and type(service) == "table" and type(service.Get) == "function" then
+			local ok, remote = pcall(service.Get, "BossFight")
 
-	if bossOrbIndex > #orbs then
-		bossOrbIndex = 1
-	end
+			if not ok then
+				ok, remote = pcall(service.Get, service, "BossFight")
+			end
 
-	local root = getRoot()
+			if ok and remote and remote:IsA("RemoteEvent") then
+				return remote
+			end
+		end
 
-	if not root then
-		return false
-	end
-
-	local success = teleportToCFrame(
-		CFrame.new(orbs[bossOrbIndex].Part.Position)
-			* root.CFrame.Rotation
-	)
-
-	if success then
-		lastLocalOrbTouchTime = os.clock()
-	end
-
-	return success
-end
-
-local function getBossRemote()
-	local modules = ReplicatedStorage:FindFirstChild("Modules")
-	local shared = modules and modules:FindFirstChild("Shared")
-	local serviceScript = shared and shared:FindFirstChild("RemoteEventService")
-
-	if not serviceScript then
 		return nil
 	end
 
-	local direct = serviceScript:FindFirstChild("BossFightRemoteEvent")
+	local bossRemoteConnection = nil
 
-	if direct and direct:IsA("RemoteEvent") then
-		return direct
-	end
-
-	local success, service = pcall(require, serviceScript)
-
-	if success and type(service) == "table" and type(service.Get) == "function" then
-		local ok, remote = pcall(service.Get, "BossFight")
-
-		if not ok then
-			ok, remote = pcall(service.Get, service, "BossFight")
+	local function connectBossRemote()
+		if bossRemoteConnection then
+			bossRemoteConnection:Disconnect()
+			bossRemoteConnection = nil
 		end
 
-		if ok and remote and remote:IsA("RemoteEvent") then
-			return remote
-		end
-	end
+		local remote = getBossRemote()
 
-	return nil
-end
-
-local bossRemoteConnection = nil
-
-local function connectBossRemote()
-	if bossRemoteConnection then
-		bossRemoteConnection:Disconnect()
-		bossRemoteConnection = nil
-	end
-
-	local remote = getBossRemote()
-
-	if not remote then
-		return
-	end
-
-	bossRemoteConnection = remote.OnClientEvent:Connect(function(eventName, ...)
-		if eventName == "CutsceneEnd"
-			or eventName == "MiniBossFightStart" then
-
-			local maxHealth = tonumber((...)) or 0
-
-			bossReady = true
-			bossRemoteKnown = true
-			bossMaxHealth = maxHealth
-			bossCurrentHealth = maxHealth
-			bossLastHealth = maxHealth
-			bossMyDamage = 0
-			bossOthersDamage = 0
-			lastLocalOrbTouchTime = -math.huge
-
-		elseif eventName == "UpdateHealth" then
-			local currentHealth, maxHealth = ...
-
-			currentHealth = tonumber(currentHealth) or 0
-			maxHealth = tonumber(maxHealth) or bossMaxHealth
-
-			if bossLastHealth and currentHealth < bossLastHealth then
-				local damageDelta = bossLastHealth - currentHealth
-
-				if os.clock() - lastLocalOrbTouchTime <= MY_DAMAGE_WINDOW then
-					bossMyDamage += damageDelta
-				else
-					bossOthersDamage += damageDelta
-				end
-			end
-
-			bossCurrentHealth = currentHealth
-			bossMaxHealth = maxHealth
-			bossLastHealth = currentHealth
-			bossReady = currentHealth > 0
-			bossRemoteKnown = true
-
-		elseif eventName == "BossFightEnd"
-			or eventName == "DeathCutscene"
-			or eventName == "GateCloseCutscene"
-			or eventName == "DoorCutsceneStart"
-			or eventName == "StartCutscene" then
-
-			bossReady = false
-			bossRemoteKnown = true
-		end
-	end)
-end
-
-local function isBossReady()
-	if bossRemoteKnown then
-		return bossReady
-	end
-
-	return #getDamageOrbs() > 0
-end
-
-local gui = Instance.new("ScreenGui")
-gui.Name = "AnonymousHubStableBase"
-gui.ResetOnSpawn = false
-gui.Parent = playerGui
-
-local frame = Instance.new("Frame")
-frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 390)
-frame.Position = UDim2.new(0.5, -195, 0.5, -195)
-frame.BackgroundColor3 = COLOR_BG
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.ClipsDescendants = true
-frame.Parent = gui
-addCorner(frame, 24)
-addStroke(frame, Color3.fromRGB(70, 80, 110), 1, 0.35)
-
-local hubScale = Instance.new("UIScale")
-hubScale.Scale = hubScaleValue
-hubScale.Parent = frame
-
-local topbar = Instance.new("Frame")
-topbar.Size = UDim2.new(1, 0, 0, 58)
-topbar.BackgroundColor3 = COLOR_BLUE
-topbar.BorderSizePixel = 0
-topbar.Parent = frame
-addCorner(topbar, 24)
-
-local topFix = Instance.new("Frame")
-topFix.Size = UDim2.new(1, 0, 0, 18)
-topFix.Position = UDim2.new(0, 0, 1, -18)
-topFix.BackgroundColor3 = COLOR_BLUE
-topFix.BorderSizePixel = 0
-topFix.Parent = topbar
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -100, 1, 0)
-title.Position = UDim2.fromOffset(16, 0)
-title.BackgroundTransparency = 1
-title.Text = "ANONYMOUS HUB"
-title.TextColor3 = COLOR_TEXT
-title.Font = Enum.Font.GothamBold
-title.TextSize = 20
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = topbar
-
-local minimize = Instance.new("TextButton")
-minimize.Size = UDim2.fromOffset(34, 34)
-minimize.Position = UDim2.new(1, -76, 0.5, -17)
-minimize.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
-minimize.BorderSizePixel = 0
-minimize.Text = "-"
-minimize.TextColor3 = COLOR_TEXT
-minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 18
-minimize.Parent = topbar
-addCorner(minimize, 12)
-
-local close = Instance.new("TextButton")
-close.Size = UDim2.fromOffset(34, 34)
-close.Position = UDim2.new(1, -39, 0.5, -17)
-close.BackgroundColor3 = COLOR_RED
-close.BorderSizePixel = 0
-close.Text = "X"
-close.TextColor3 = COLOR_TEXT
-close.Font = Enum.Font.GothamBold
-close.TextSize = 15
-close.Parent = topbar
-addCorner(close, 12)
-
-local tabs = Instance.new("Frame")
-tabs.Size = UDim2.new(1, -16, 0, 42)
-tabs.Position = UDim2.fromOffset(8, 65)
-tabs.BackgroundColor3 = COLOR_PANEL
-tabs.BorderSizePixel = 0
-tabs.Parent = frame
-addCorner(tabs, 14)
-
-local tabLayout = Instance.new("UIListLayout")
-tabLayout.FillDirection = Enum.FillDirection.Horizontal
-tabLayout.Padding = UDim.new(0, 5)
-tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-tabLayout.Parent = tabs
-
-local function makeTab(text)
-	local button = Instance.new("TextButton")
-	button.Size = UDim2.new(1 / 3, -7, 0, 34)
-	button.BackgroundColor3 = COLOR_PANEL_2
-	button.BorderSizePixel = 0
-	button.Text = text
-	button.TextColor3 = COLOR_TEXT
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = 10
-	button.Parent = tabs
-	addCorner(button, 8)
-	return button
-end
-
-local generalTab = makeTab("GENERAL")
-local worldsTab = makeTab("WORLDS")
-local bossTab = makeTab("BOSS FIGHT")
-
-local content = Instance.new("Frame")
-content.Size = UDim2.new(1, -20, 1, -120)
-content.Position = UDim2.fromOffset(10, 114)
-content.BackgroundTransparency = 1
-content.Parent = frame
-
-local generalPage = Instance.new("Frame")
-generalPage.Size = UDim2.fromScale(1, 1)
-generalPage.BackgroundTransparency = 1
-generalPage.Parent = content
-
-local worldsPage = Instance.new("Frame")
-worldsPage.Size = UDim2.fromScale(1, 1)
-worldsPage.BackgroundTransparency = 1
-worldsPage.Visible = false
-worldsPage.Parent = content
-
-local bossPage = Instance.new("Frame")
-bossPage.Size = UDim2.fromScale(1, 1)
-bossPage.BackgroundTransparency = 1
-bossPage.Visible = false
-bossPage.Parent = content
-
-local function makePanel(parent, position, size)
-	local panel = Instance.new("Frame")
-	panel.Position = position
-	panel.Size = size
-	panel.BackgroundColor3 = COLOR_PANEL
-	panel.BorderSizePixel = 0
-	panel.Parent = parent
-	addCorner(panel, 16)
-	addStroke(panel, Color3.fromRGB(75, 82, 110), 1, 0.6)
-	return panel
-end
-
-local function makeButton(parent, text, position, size, color)
-	local button = Instance.new("TextButton")
-	button.Position = position
-	button.Size = size
-	button.BackgroundColor3 = color
-	button.BorderSizePixel = 0
-	button.Text = text
-	button.TextColor3 = COLOR_TEXT
-	button.Font = Enum.Font.GothamBold
-	button.TextSize = 12
-	button.Parent = parent
-	addCorner(button, 12)
-	return button
-end
-
-local farmPanel = makePanel(
-	generalPage,
-	UDim2.fromOffset(0, 0),
-	UDim2.new(1, 0, 0, 150)
-)
-
-local farmTitle = Instance.new("TextLabel")
-farmTitle.Size = UDim2.fromOffset(70, 24)
-farmTitle.Position = UDim2.fromOffset(12, 8)
-farmTitle.BackgroundTransparency = 1
-farmTitle.Text = "FARM XP"
-farmTitle.TextColor3 = COLOR_TEXT
-farmTitle.Font = Enum.Font.GothamBold
-farmTitle.TextSize = 14
-farmTitle.TextXAlignment = Enum.TextXAlignment.Left
-farmTitle.Parent = farmPanel
-
-local farmDot = Instance.new("Frame")
-farmDot.Size = UDim2.fromOffset(10, 10)
-farmDot.Position = UDim2.fromOffset(84, 15)
-farmDot.BackgroundColor3 = COLOR_RED
-farmDot.BorderSizePixel = 0
-farmDot.Parent = farmPanel
-addCorner(farmDot, 5)
-
-local farmState = Instance.new("TextLabel")
-farmState.Size = UDim2.fromOffset(70, 22)
-farmState.Position = UDim2.fromOffset(100, 9)
-farmState.BackgroundTransparency = 1
-farmState.Text = "Disabled"
-farmState.TextColor3 = COLOR_RED
-farmState.Font = Enum.Font.GothamBold
-farmState.TextSize = 13
-farmState.TextXAlignment = Enum.TextXAlignment.Left
-farmState.Parent = farmPanel
-
-local farmStart = makeButton(
-	farmPanel,
-	"START BEST TREADMILL",
-	UDim2.fromOffset(12, 42),
-	UDim2.new(1, -24, 0, 42),
-	COLOR_BLUE
-)
-
-local farmInfo = Instance.new("TextLabel")
-farmInfo.Size = UDim2.new(1, -24, 0, 34)
-farmInfo.Position = UDim2.fromOffset(12, 92)
-farmInfo.BackgroundTransparency = 1
-farmInfo.Text = "Speed Training"
-farmInfo.TextColor3 = COLOR_BLUE
-farmInfo.Font = Enum.Font.GothamBold
-farmInfo.TextSize = 10
-farmInfo.TextWrapped = true
-farmInfo.Parent = farmPanel
-
-local farmStop = makeButton(
-	farmPanel,
-	"STOP",
-	UDim2.new(0.5, -80, 0, 53),
-	UDim2.fromOffset(160, 38),
-	COLOR_RED
-)
-farmStop.Visible = false
-
-local scalePanel = makePanel(
-	generalPage,
-	UDim2.fromOffset(0, 160),
-	UDim2.new(1, 0, 0, 88)
-)
-
-local scaleTitle = Instance.new("TextLabel")
-scaleTitle.Size = UDim2.new(1, -24, 0, 24)
-scaleTitle.Position = UDim2.fromOffset(12, 8)
-scaleTitle.BackgroundTransparency = 1
-scaleTitle.Text = "HUB SIZE"
-scaleTitle.TextColor3 = COLOR_TEXT
-scaleTitle.Font = Enum.Font.GothamBold
-scaleTitle.TextSize = 14
-scaleTitle.TextXAlignment = Enum.TextXAlignment.Left
-scaleTitle.Parent = scalePanel
-
-local scaleMinus = makeButton(
-	scalePanel,
-	"-",
-	UDim2.fromOffset(12, 38),
-	UDim2.fromOffset(56, 36),
-	Color3.fromRGB(55, 85, 170)
-)
-scaleMinus.TextSize = 18
-
-local scaleLabel = Instance.new("TextLabel")
-scaleLabel.Size = UDim2.new(1, -152, 0, 36)
-scaleLabel.Position = UDim2.fromOffset(76, 38)
-scaleLabel.BackgroundColor3 = COLOR_PANEL_2
-scaleLabel.BorderSizePixel = 0
-scaleLabel.Text = "100%"
-scaleLabel.TextColor3 = COLOR_TEXT
-scaleLabel.Font = Enum.Font.GothamBold
-scaleLabel.TextSize = 12
-scaleLabel.Parent = scalePanel
-addCorner(scaleLabel, 12)
-
-local scalePlus = makeButton(
-	scalePanel,
-	"+",
-	UDim2.new(1, -68, 0, 38),
-	UDim2.fromOffset(56, 36),
-	Color3.fromRGB(55, 85, 170)
-)
-scalePlus.TextSize = 17
-
-local worldSelectPanel = makePanel(
-	worldsPage,
-	UDim2.fromOffset(0, 0),
-	UDim2.new(1, 0, 0, 100)
-)
-
-local selectTitle = Instance.new("TextLabel")
-selectTitle.Size = UDim2.new(1, -24, 0, 24)
-selectTitle.Position = UDim2.fromOffset(12, 8)
-selectTitle.BackgroundTransparency = 1
-selectTitle.Text = "SELECT WORLD"
-selectTitle.TextColor3 = COLOR_TEXT
-selectTitle.Font = Enum.Font.GothamBold
-selectTitle.TextSize = 14
-selectTitle.TextXAlignment = Enum.TextXAlignment.Left
-selectTitle.Parent = worldSelectPanel
-
-local world1Button = makeButton(
-	worldSelectPanel,
-	"WORLD 1",
-	UDim2.fromOffset(12, 38),
-	UDim2.new(1 / 3, -12, 0, 46),
-	COLOR_BLUE
-)
-
-local world2Button = makeButton(
-	worldSelectPanel,
-	"WORLD 2",
-	UDim2.new(1 / 3, 4, 0, 38),
-	UDim2.new(1 / 3, -12, 0, 46),
-	COLOR_PANEL_2
-)
-
-local world3Button = makeButton(
-	worldSelectPanel,
-	"WORLD 3\nCOMING SOON...",
-	UDim2.new(2 / 3, -4, 0, 38),
-	UDim2.new(1 / 3, -12, 0, 46),
-	COLOR_PANEL_2
-)
-world3Button.TextSize = 9
-world3Button.TextColor3 = COLOR_MUTED
-
-local stagePanel = makePanel(
-	worldsPage,
-	UDim2.fromOffset(0, 110),
-	UDim2.new(1, 0, 0, 110)
-)
-
-local stageTitle = Instance.new("TextLabel")
-stageTitle.Size = UDim2.new(1, -24, 0, 24)
-stageTitle.Position = UDim2.fromOffset(12, 9)
-stageTitle.BackgroundTransparency = 1
-stageTitle.Text = "END STAGE 14"
-stageTitle.TextColor3 = COLOR_TEXT
-stageTitle.Font = Enum.Font.GothamBold
-stageTitle.TextSize = 14
-stageTitle.TextXAlignment = Enum.TextXAlignment.Left
-stageTitle.Parent = stagePanel
-
-local manualWorldButton = makeButton(
-	stagePanel,
-	"MANUAL",
-	UDim2.fromOffset(12, 42),
-	UDim2.new(0.5, -17, 0, 44),
-	COLOR_GREEN
-)
-
-local autoWorldButton = makeButton(
-	stagePanel,
-	"AUTO: OFF",
-	UDim2.new(0.5, 5, 0, 42),
-	UDim2.new(0.5, -17, 0, 44),
-	COLOR_RED
-)
-
-local worldStatus = Instance.new("TextLabel")
-worldStatus.Size = UDim2.new(1, -12, 0, 28)
-worldStatus.Position = UDim2.fromOffset(6, 226)
-worldStatus.BackgroundTransparency = 1
-worldStatus.Text = "World 1 selected"
-worldStatus.TextColor3 = COLOR_MUTED
-worldStatus.Font = Enum.Font.GothamMedium
-worldStatus.TextSize = 10
-worldStatus.Parent = worldsPage
-
-local bossReadyPanel = makePanel(
-	bossPage,
-	UDim2.fromOffset(0, 0),
-	UDim2.new(1, 0, 0, 58)
-)
-
-local bossReadyLabel = Instance.new("TextLabel")
-bossReadyLabel.Size = UDim2.new(1, -20, 1, -16)
-bossReadyLabel.Position = UDim2.fromOffset(10, 8)
-bossReadyLabel.BackgroundColor3 = COLOR_PANEL_2
-bossReadyLabel.BorderSizePixel = 0
-bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
-bossReadyLabel.TextColor3 = COLOR_ORANGE
-bossReadyLabel.Font = Enum.Font.GothamBold
-bossReadyLabel.TextSize = 10
-bossReadyLabel.Parent = bossReadyPanel
-addCorner(bossReadyLabel, 12)
-
-local bossStatsPanel = makePanel(
-	bossPage,
-	UDim2.fromOffset(0, 68),
-	UDim2.new(1, 0, 0, 112)
-)
-
-local bossHealthLabel = Instance.new("TextLabel")
-bossHealthLabel.Size = UDim2.new(1, -20, 0, 34)
-bossHealthLabel.Position = UDim2.fromOffset(10, 10)
-bossHealthLabel.BackgroundColor3 = COLOR_PANEL_2
-bossHealthLabel.BorderSizePixel = 0
-bossHealthLabel.Text = "Boss Health • 0 / 0"
-bossHealthLabel.TextColor3 = COLOR_TEXT
-bossHealthLabel.Font = Enum.Font.GothamBold
-bossHealthLabel.TextSize = 11
-bossHealthLabel.Parent = bossStatsPanel
-addCorner(bossHealthLabel, 12)
-
-local myDamageLabel = Instance.new("TextLabel")
-myDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
-myDamageLabel.Position = UDim2.fromOffset(10, 54)
-myDamageLabel.BackgroundColor3 = COLOR_PANEL_2
-myDamageLabel.BorderSizePixel = 0
-myDamageLabel.Text = "My Dmg\n0"
-myDamageLabel.TextColor3 = COLOR_GREEN
-myDamageLabel.Font = Enum.Font.GothamBold
-myDamageLabel.TextSize = 11
-myDamageLabel.Parent = bossStatsPanel
-addCorner(myDamageLabel, 12)
-
-local othersDamageLabel = Instance.new("TextLabel")
-othersDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
-othersDamageLabel.Position = UDim2.new(0.5, 5, 0, 54)
-othersDamageLabel.BackgroundColor3 = COLOR_PANEL_2
-othersDamageLabel.BorderSizePixel = 0
-othersDamageLabel.Text = "Others Dmg\n0"
-othersDamageLabel.TextColor3 = COLOR_ORANGE
-othersDamageLabel.Font = Enum.Font.GothamBold
-othersDamageLabel.TextSize = 11
-othersDamageLabel.Parent = bossStatsPanel
-addCorner(othersDamageLabel, 12)
-
-local bossActionsPanel = makePanel(
-	bossPage,
-	UDim2.fromOffset(0, 190),
-	UDim2.new(1, 0, 0, 100)
-)
-
-local manualOrbButton = makeButton(
-	bossActionsPanel,
-	"MANUAL ORB",
-	UDim2.fromOffset(12, 12),
-	UDim2.new(0.5, -17, 0, 42),
-	COLOR_PURPLE
-)
-
-local autoOrbButton = makeButton(
-	bossActionsPanel,
-	"AUTO: OFF",
-	UDim2.new(0.5, 5, 0, 12),
-	UDim2.new(0.5, -17, 0, 42),
-	COLOR_RED
-)
-
-local bossStatus = Instance.new("TextLabel")
-bossStatus.Size = UDim2.new(1, -24, 0, 28)
-bossStatus.Position = UDim2.fromOffset(12, 61)
-bossStatus.BackgroundTransparency = 1
-bossStatus.Text = "Wait for the boss to be ready."
-bossStatus.TextColor3 = COLOR_ORANGE
-bossStatus.Font = Enum.Font.GothamMedium
-bossStatus.TextSize = 10
-bossStatus.Parent = bossActionsPanel
-
-local function refreshScaleUI()
-	hubScale.Scale = hubScaleValue
-	scaleLabel.Text = tostring(math.floor(hubScaleValue * 100 + 0.5)) .. "%"
-end
-
-local function setHubScale(newScale)
-	hubScaleValue = math.clamp(
-		math.floor((newScale / HUB_SCALE_STEP) + 0.5)
-			* HUB_SCALE_STEP,
-		HUB_SCALE_MIN,
-		HUB_SCALE_MAX
-	)
-
-	refreshScaleUI()
-end
-
-scaleMinus.MouseButton1Click:Connect(function()
-	setHubScale(hubScaleValue - HUB_SCALE_STEP)
-end)
-
-scalePlus.MouseButton1Click:Connect(function()
-	setHubScale(hubScaleValue + HUB_SCALE_STEP)
-end)
-
-scaleMinus.MouseEnter:Connect(function()
-	scaleMinus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
-end)
-
-scaleMinus.MouseLeave:Connect(function()
-	scaleMinus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
-end)
-
-scalePlus.MouseEnter:Connect(function()
-	scalePlus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
-end)
-
-scalePlus.MouseLeave:Connect(function()
-	scalePlus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
-end)
-
-local function getCurrentPage()
-	if currentTab == "General" then
-		return generalPage
-	elseif currentTab == "Worlds" then
-		return worldsPage
-	else
-		return bossPage
-	end
-end
-
-local function getVisibleContentBottom(page)
-	local bottom = 0
-
-	for _, child in ipairs(page:GetChildren()) do
-		if child:IsA("GuiObject") and child.Visible then
-			local y = child.Position.Y.Offset
-			local height = child.Size.Y.Offset
-			bottom = math.max(bottom, y + height)
-		end
-	end
-
-	return bottom
-end
-
-local function updateWindowHeight()
-	if minimized or closed then
-		return
-	end
-
-	local page = getCurrentPage()
-	local contentBottom = getVisibleContentBottom(page)
-
-	local desiredHeight =
-		TOP_CONTENT_OFFSET
-		+ contentBottom
-		+ BOTTOM_PADDING
-
-	desiredHeight = math.clamp(
-		desiredHeight,
-		MIN_WINDOW_HEIGHT,
-		MAX_WINDOW_HEIGHT
-	)
-
-	frame.Size = UDim2.fromOffset(WINDOW_WIDTH, desiredHeight)
-	content.Size = UDim2.new(
-		1,
-		-20,
-		0,
-		desiredHeight - TOP_CONTENT_OFFSET - 6
-	)
-end
-
-local function updateTabs()
-	generalPage.Visible = currentTab == "General"
-	worldsPage.Visible = currentTab == "Worlds"
-	bossPage.Visible = currentTab == "Boss"
-
-	generalTab.BackgroundColor3 =
-		currentTab == "General" and COLOR_BLUE or COLOR_PANEL_2
-
-	worldsTab.BackgroundColor3 =
-		currentTab == "Worlds" and COLOR_BLUE or COLOR_PANEL_2
-
-	bossTab.BackgroundColor3 =
-		currentTab == "Boss" and COLOR_BLUE or COLOR_PANEL_2
-
-	updateWindowHeight()
-end
-
-local function refreshFarmUI()
-	local best = farmSelected or getBestTreadmill()
-
-	if best then
-		farmInfo.Text =
-			"Speed Training (Requires "
-			.. formatNumber(best.Requirement)
-			.. " Rebirth(s) • x"
-			.. formatNumber(best.Multiplier)
-			.. ")"
-	else
-		farmInfo.Text = "Speed Training (No eligible treadmill)"
-	end
-
-	if farmActive then
-		farmDot.BackgroundColor3 = COLOR_GREEN
-		farmState.Text = "Active"
-		farmState.TextColor3 = COLOR_GREEN
-		farmStart.Visible = false
-		farmInfo.Visible = false
-		farmStop.Visible = true
-	else
-		farmDot.BackgroundColor3 = COLOR_RED
-		farmState.Text = "Disabled"
-		farmState.TextColor3 = COLOR_RED
-		farmStart.Visible = true
-		farmInfo.Visible = true
-		farmStop.Visible = false
-	end
-
-	updateWindowHeight()
-end
-
-local function refreshWorldUI()
-	world1Button.BackgroundColor3 =
-		selectedWorld == 1 and COLOR_BLUE or COLOR_PANEL_2
-
-	world2Button.BackgroundColor3 =
-		selectedWorld == 2 and COLOR_BLUE or COLOR_PANEL_2
-
-	if worldAuto then
-		autoWorldButton.Text = "AUTO: ON"
-		autoWorldButton.BackgroundColor3 = COLOR_GREEN
-		worldStatus.Text =
-			"World "
-			.. tostring(selectedWorld)
-			.. " selected • Auto active"
-		worldStatus.TextColor3 = COLOR_GREEN
-	else
-		autoWorldButton.Text = "AUTO: OFF"
-		autoWorldButton.BackgroundColor3 = COLOR_RED
-		worldStatus.Text =
-			"World "
-			.. tostring(selectedWorld)
-			.. " selected"
-		worldStatus.TextColor3 = COLOR_MUTED
-	end
-
-	updateWindowHeight()
-end
-
-local function refreshBossUI()
-	local ready = isBossReady()
-	local orbCount = #getDamageOrbs()
-
-	if ready then
-		bossReadyLabel.Text = "BOSS READY"
-		bossReadyLabel.TextColor3 = COLOR_GREEN
-	else
-		bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
-		bossReadyLabel.TextColor3 = COLOR_ORANGE
-	end
-
-	bossHealthLabel.Text =
-		"Boss Health • "
-		.. formatNumber(bossCurrentHealth)
-		.. " / "
-		.. formatNumber(bossMaxHealth)
-
-	myDamageLabel.Text = "My Dmg\n" .. formatNumber(bossMyDamage)
-	othersDamageLabel.Text = "Others Dmg\n" .. formatNumber(bossOthersDamage)
-
-	if bossAuto then
-		autoOrbButton.Text = "AUTO: ON"
-		autoOrbButton.BackgroundColor3 = COLOR_GREEN
-	else
-		autoOrbButton.Text = "AUTO: OFF"
-		autoOrbButton.BackgroundColor3 = COLOR_RED
-	end
-
-	if not ready then
-		bossStatus.Text = bossAuto
-			and "AUTO ON • Waiting for the boss."
-			or "Wait for the boss to be ready."
-
-		bossStatus.TextColor3 = COLOR_ORANGE
-	elseif orbCount <= 0 then
-		bossStatus.Text = "Boss ready • Waiting for DamageOrbs..."
-		bossStatus.TextColor3 = COLOR_ORANGE
-	else
-		bossStatus.Text =
-			"Boss ready • "
-			.. tostring(orbCount)
-			.. " DamageOrb(s)"
-
-		bossStatus.TextColor3 =
-			bossAuto and COLOR_GREEN or COLOR_MUTED
-	end
-
-	updateWindowHeight()
-end
-
-generalTab.MouseButton1Click:Connect(function()
-	currentTab = "General"
-	updateTabs()
-end)
-
-worldsTab.MouseButton1Click:Connect(function()
-	currentTab = "Worlds"
-	updateTabs()
-end)
-
-bossTab.MouseButton1Click:Connect(function()
-	currentTab = "Boss"
-	updateTabs()
-end)
-
-farmStart.MouseButton1Click:Connect(function()
-	startBestFarm()
-	refreshFarmUI()
-end)
-
-farmStop.MouseButton1Click:Connect(function()
-	stopFarm()
-	refreshFarmUI()
-end)
-
-world1Button.MouseButton1Click:Connect(function()
-	selectedWorld = 1
-	refreshWorldUI()
-
-	if worldAuto then
-		teleportSelectedWorld()
-	end
-end)
-
-world2Button.MouseButton1Click:Connect(function()
-	selectedWorld = 2
-	refreshWorldUI()
-
-	if worldAuto then
-		teleportSelectedWorld()
-	end
-end)
-
-world3Button.MouseButton1Click:Connect(function()
-	worldStatus.Text = "World 3 • Coming Soon..."
-	worldStatus.TextColor3 = COLOR_ORANGE
-	updateWindowHeight()
-end)
-
-manualWorldButton.MouseButton1Click:Connect(function()
-	teleportSelectedWorld()
-end)
-
-autoWorldButton.MouseButton1Click:Connect(function()
-	worldAuto = not worldAuto
-	refreshWorldUI()
-end)
-
-task.spawn(function()
-	while not closed do
-		task.wait(WORLD_AUTO_INTERVAL)
-
-		if worldAuto then
-			pcall(teleportSelectedWorld)
-		end
-	end
-end)
-
-manualOrbButton.MouseButton1Click:Connect(function()
-	if isBossReady() then
-		teleportNearestOrb()
-	end
-
-	refreshBossUI()
-end)
-
-autoOrbButton.MouseButton1Click:Connect(function()
-	bossAuto = not bossAuto
-	refreshBossUI()
-end)
-
-task.spawn(function()
-	while not closed do
-		task.wait(BOSS_ORB_INTERVAL)
-
-		if bossAuto and isBossReady() then
-			pcall(teleportNextOrb)
-		end
-	end
-end)
-
-RunService.RenderStepped:Connect(function()
-	if farmInfo.Visible and farmInfo.Parent then
-		farmInfo.TextColor3 =
-			Color3.fromHSV((os.clock() * 0.16) % 1, 0.85, 1)
-	end
-end)
-
-player.CharacterAdded:Connect(function()
-	local restoreFarm = farmActive
-
-	if farmConnection then
-		farmConnection:Disconnect()
-		farmConnection = nil
-	end
-
-	stopFarmAnimation()
-	farmAnchorCFrame = nil
-
-	task.delay(1, function()
-		if closed then
+		if not remote then
 			return
 		end
 
-		if restoreFarm then
-			for _ = 1, 8 do
-				if startBestFarm() then
-					break
+		bossRemoteConnection = remote.OnClientEvent:Connect(function(eventName, ...)
+			if eventName == "CutsceneEnd"
+				or eventName == "MiniBossFightStart" then
+
+				local maxHealth = tonumber((...)) or 0
+
+				bossReady = true
+				bossRemoteKnown = true
+				bossMaxHealth = maxHealth
+				bossCurrentHealth = maxHealth
+				bossLastHealth = maxHealth
+				bossMyDamage = 0
+				bossOthersDamage = 0
+				lastLocalOrbTouchTime = -math.huge
+
+			elseif eventName == "UpdateHealth" then
+				local currentHealth, maxHealth = ...
+
+				currentHealth = tonumber(currentHealth) or 0
+				maxHealth = tonumber(maxHealth) or bossMaxHealth
+
+				if bossLastHealth and currentHealth < bossLastHealth then
+					local damageDelta = bossLastHealth - currentHealth
+
+					if os.clock() - lastLocalOrbTouchTime <= MY_DAMAGE_WINDOW then
+						bossMyDamage += damageDelta
+					else
+						bossOthersDamage += damageDelta
+					end
 				end
 
-				task.wait(0.5)
+				bossCurrentHealth = currentHealth
+				bossMaxHealth = maxHealth
+				bossLastHealth = currentHealth
+				bossReady = currentHealth > 0
+				bossRemoteKnown = true
+
+			elseif eventName == "BossFightEnd"
+				or eventName == "DeathCutscene"
+				or eventName == "GateCloseCutscene"
+				or eventName == "DoorCutsceneStart"
+				or eventName == "StartCutscene" then
+
+				bossReady = false
+				bossRemoteKnown = true
+			end
+		end)
+	end
+
+	local function isBossReady()
+		if bossRemoteKnown then
+			return bossReady
+		end
+
+		return #getDamageOrbs() > 0
+	end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "AnonymousHubStableBase"
+	gui.ResetOnSpawn = false
+	gui.Parent = playerGui
+
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 390)
+	frame.Position = UDim2.new(0.5, -195, 0.5, -195)
+	frame.BackgroundColor3 = COLOR_BG
+	frame.BorderSizePixel = 0
+	frame.Active = true
+	frame.Draggable = true
+	frame.ClipsDescendants = true
+	frame.Parent = gui
+	addCorner(frame, 24)
+	addStroke(frame, Color3.fromRGB(70, 80, 110), 1, 0.35)
+
+	local hubScale = Instance.new("UIScale")
+	hubScale.Scale = hubScaleValue
+	hubScale.Parent = frame
+
+	local topbar = Instance.new("Frame")
+	topbar.Size = UDim2.new(1, 0, 0, 58)
+	topbar.BackgroundColor3 = COLOR_BLUE
+	topbar.BorderSizePixel = 0
+	topbar.Parent = frame
+	addCorner(topbar, 24)
+
+	local topFix = Instance.new("Frame")
+	topFix.Size = UDim2.new(1, 0, 0, 18)
+	topFix.Position = UDim2.new(0, 0, 1, -18)
+	topFix.BackgroundColor3 = COLOR_BLUE
+	topFix.BorderSizePixel = 0
+	topFix.Parent = topbar
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1, -100, 1, 0)
+	title.Position = UDim2.fromOffset(16, 0)
+	title.BackgroundTransparency = 1
+	title.Text = "ANONYMOUS HUB"
+	title.TextColor3 = COLOR_TEXT
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 20
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Parent = topbar
+
+	local minimize = Instance.new("TextButton")
+	minimize.Size = UDim2.fromOffset(34, 34)
+	minimize.Position = UDim2.new(1, -76, 0.5, -17)
+	minimize.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+	minimize.BorderSizePixel = 0
+	minimize.Text = "-"
+	minimize.TextColor3 = COLOR_TEXT
+	minimize.Font = Enum.Font.GothamBold
+	minimize.TextSize = 18
+	minimize.Parent = topbar
+	addCorner(minimize, 12)
+
+	local close = Instance.new("TextButton")
+	close.Size = UDim2.fromOffset(34, 34)
+	close.Position = UDim2.new(1, -39, 0.5, -17)
+	close.BackgroundColor3 = COLOR_RED
+	close.BorderSizePixel = 0
+	close.Text = "X"
+	close.TextColor3 = COLOR_TEXT
+	close.Font = Enum.Font.GothamBold
+	close.TextSize = 15
+	close.Parent = topbar
+	addCorner(close, 12)
+
+	local tabs = Instance.new("Frame")
+	tabs.Size = UDim2.new(1, -16, 0, 42)
+	tabs.Position = UDim2.fromOffset(8, 65)
+	tabs.BackgroundColor3 = COLOR_PANEL
+	tabs.BorderSizePixel = 0
+	tabs.Parent = frame
+	addCorner(tabs, 14)
+
+	local tabLayout = Instance.new("UIListLayout")
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.Padding = UDim.new(0, 5)
+	tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	tabLayout.Parent = tabs
+
+	local function makeTab(text)
+		local button = Instance.new("TextButton")
+		button.Size = UDim2.new(1 / 3, -7, 0, 34)
+		button.BackgroundColor3 = COLOR_PANEL_2
+		button.BorderSizePixel = 0
+		button.Text = text
+		button.TextColor3 = COLOR_TEXT
+		button.Font = Enum.Font.GothamBold
+		button.TextSize = 10
+		button.Parent = tabs
+		addCorner(button, 8)
+		return button
+	end
+
+	local generalTab = makeTab("GENERAL")
+	local worldsTab = makeTab("WORLDS")
+	local bossTab = makeTab("BOSS FIGHT")
+
+	local content = Instance.new("Frame")
+	content.Size = UDim2.new(1, -20, 1, -120)
+	content.Position = UDim2.fromOffset(10, 114)
+	content.BackgroundTransparency = 1
+	content.Parent = frame
+
+	local generalPage = Instance.new("Frame")
+	generalPage.Size = UDim2.fromScale(1, 1)
+	generalPage.BackgroundTransparency = 1
+	generalPage.Parent = content
+
+	local worldsPage = Instance.new("Frame")
+	worldsPage.Size = UDim2.fromScale(1, 1)
+	worldsPage.BackgroundTransparency = 1
+	worldsPage.Visible = false
+	worldsPage.Parent = content
+
+	local bossPage = Instance.new("Frame")
+	bossPage.Size = UDim2.fromScale(1, 1)
+	bossPage.BackgroundTransparency = 1
+	bossPage.Visible = false
+	bossPage.Parent = content
+
+	local function makePanel(parent, position, size)
+		local panel = Instance.new("Frame")
+		panel.Position = position
+		panel.Size = size
+		panel.BackgroundColor3 = COLOR_PANEL
+		panel.BorderSizePixel = 0
+		panel.Parent = parent
+		addCorner(panel, 16)
+		addStroke(panel, Color3.fromRGB(75, 82, 110), 1, 0.6)
+		return panel
+	end
+
+	local function makeButton(parent, text, position, size, color)
+		local button = Instance.new("TextButton")
+		button.Position = position
+		button.Size = size
+		button.BackgroundColor3 = color
+		button.BorderSizePixel = 0
+		button.Text = text
+		button.TextColor3 = COLOR_TEXT
+		button.Font = Enum.Font.GothamBold
+		button.TextSize = 12
+		button.Parent = parent
+		addCorner(button, 12)
+		return button
+	end
+
+	local farmPanel = makePanel(
+		generalPage,
+		UDim2.fromOffset(0, 0),
+		UDim2.new(1, 0, 0, 150)
+	)
+
+	local farmTitle = Instance.new("TextLabel")
+	farmTitle.Size = UDim2.fromOffset(70, 24)
+	farmTitle.Position = UDim2.fromOffset(12, 8)
+	farmTitle.BackgroundTransparency = 1
+	farmTitle.Text = "FARM XP"
+	farmTitle.TextColor3 = COLOR_TEXT
+	farmTitle.Font = Enum.Font.GothamBold
+	farmTitle.TextSize = 14
+	farmTitle.TextXAlignment = Enum.TextXAlignment.Left
+	farmTitle.Parent = farmPanel
+
+	local farmDot = Instance.new("Frame")
+	farmDot.Size = UDim2.fromOffset(10, 10)
+	farmDot.Position = UDim2.fromOffset(84, 15)
+	farmDot.BackgroundColor3 = COLOR_RED
+	farmDot.BorderSizePixel = 0
+	farmDot.Parent = farmPanel
+	addCorner(farmDot, 5)
+
+	local farmState = Instance.new("TextLabel")
+	farmState.Size = UDim2.fromOffset(70, 22)
+	farmState.Position = UDim2.fromOffset(100, 9)
+	farmState.BackgroundTransparency = 1
+	farmState.Text = "Disabled"
+	farmState.TextColor3 = COLOR_RED
+	farmState.Font = Enum.Font.GothamBold
+	farmState.TextSize = 13
+	farmState.TextXAlignment = Enum.TextXAlignment.Left
+	farmState.Parent = farmPanel
+
+	local farmStart = makeButton(
+		farmPanel,
+		"START BEST TREADMILL",
+		UDim2.fromOffset(12, 42),
+		UDim2.new(1, -24, 0, 42),
+		COLOR_BLUE
+	)
+
+	local farmInfo = Instance.new("TextLabel")
+	farmInfo.Size = UDim2.new(1, -24, 0, 34)
+	farmInfo.Position = UDim2.fromOffset(12, 92)
+	farmInfo.BackgroundTransparency = 1
+	farmInfo.Text = "Speed Training"
+	farmInfo.TextColor3 = COLOR_BLUE
+	farmInfo.Font = Enum.Font.GothamBold
+	farmInfo.TextSize = 10
+	farmInfo.TextWrapped = true
+	farmInfo.Parent = farmPanel
+
+	local farmStop = makeButton(
+		farmPanel,
+		"STOP",
+		UDim2.new(0.5, -80, 0, 53),
+		UDim2.fromOffset(160, 38),
+		COLOR_RED
+	)
+	farmStop.Visible = false
+
+	local scalePanel = makePanel(
+		generalPage,
+		UDim2.fromOffset(0, 160),
+		UDim2.new(1, 0, 0, 88)
+	)
+
+	local scaleTitle = Instance.new("TextLabel")
+	scaleTitle.Size = UDim2.new(1, -24, 0, 24)
+	scaleTitle.Position = UDim2.fromOffset(12, 8)
+	scaleTitle.BackgroundTransparency = 1
+	scaleTitle.Text = "HUB SIZE"
+	scaleTitle.TextColor3 = COLOR_TEXT
+	scaleTitle.Font = Enum.Font.GothamBold
+	scaleTitle.TextSize = 14
+	scaleTitle.TextXAlignment = Enum.TextXAlignment.Left
+	scaleTitle.Parent = scalePanel
+
+	local scaleMinus = makeButton(
+		scalePanel,
+		"-",
+		UDim2.fromOffset(12, 38),
+		UDim2.fromOffset(56, 36),
+		Color3.fromRGB(55, 85, 170)
+	)
+	scaleMinus.TextSize = 18
+
+	local scaleLabel = Instance.new("TextLabel")
+	scaleLabel.Size = UDim2.new(1, -152, 0, 36)
+	scaleLabel.Position = UDim2.fromOffset(76, 38)
+	scaleLabel.BackgroundColor3 = COLOR_PANEL_2
+	scaleLabel.BorderSizePixel = 0
+	scaleLabel.Text = "100%"
+	scaleLabel.TextColor3 = COLOR_TEXT
+	scaleLabel.Font = Enum.Font.GothamBold
+	scaleLabel.TextSize = 12
+	scaleLabel.Parent = scalePanel
+	addCorner(scaleLabel, 12)
+
+	local scalePlus = makeButton(
+		scalePanel,
+		"+",
+		UDim2.new(1, -68, 0, 38),
+		UDim2.fromOffset(56, 36),
+		Color3.fromRGB(55, 85, 170)
+	)
+	scalePlus.TextSize = 17
+
+	local worldSelectPanel = makePanel(
+		worldsPage,
+		UDim2.fromOffset(0, 0),
+		UDim2.new(1, 0, 0, 100)
+	)
+
+	local selectTitle = Instance.new("TextLabel")
+	selectTitle.Size = UDim2.new(1, -24, 0, 24)
+	selectTitle.Position = UDim2.fromOffset(12, 8)
+	selectTitle.BackgroundTransparency = 1
+	selectTitle.Text = "SELECT WORLD"
+	selectTitle.TextColor3 = COLOR_TEXT
+	selectTitle.Font = Enum.Font.GothamBold
+	selectTitle.TextSize = 14
+	selectTitle.TextXAlignment = Enum.TextXAlignment.Left
+	selectTitle.Parent = worldSelectPanel
+
+	local world1Button = makeButton(
+		worldSelectPanel,
+		"WORLD 1",
+		UDim2.fromOffset(12, 38),
+		UDim2.new(1 / 3, -12, 0, 46),
+		COLOR_BLUE
+	)
+
+	local world2Button = makeButton(
+		worldSelectPanel,
+		"WORLD 2",
+		UDim2.new(1 / 3, 4, 0, 38),
+		UDim2.new(1 / 3, -12, 0, 46),
+		COLOR_PANEL_2
+	)
+
+	local world3Button = makeButton(
+		worldSelectPanel,
+		"WORLD 3\nCOMING SOON...",
+		UDim2.new(2 / 3, -4, 0, 38),
+		UDim2.new(1 / 3, -12, 0, 46),
+		COLOR_PANEL_2
+	)
+	world3Button.TextSize = 9
+	world3Button.TextColor3 = COLOR_MUTED
+
+	local stagePanel = makePanel(
+		worldsPage,
+		UDim2.fromOffset(0, 110),
+		UDim2.new(1, 0, 0, 110)
+	)
+
+	local stageTitle = Instance.new("TextLabel")
+	stageTitle.Size = UDim2.new(1, -24, 0, 24)
+	stageTitle.Position = UDim2.fromOffset(12, 9)
+	stageTitle.BackgroundTransparency = 1
+	stageTitle.Text = "END STAGE 14"
+	stageTitle.TextColor3 = COLOR_TEXT
+	stageTitle.Font = Enum.Font.GothamBold
+	stageTitle.TextSize = 14
+	stageTitle.TextXAlignment = Enum.TextXAlignment.Left
+	stageTitle.Parent = stagePanel
+
+	local manualWorldButton = makeButton(
+		stagePanel,
+		"MANUAL",
+		UDim2.fromOffset(12, 42),
+		UDim2.new(0.5, -17, 0, 44),
+		COLOR_GREEN
+	)
+
+	local autoWorldButton = makeButton(
+		stagePanel,
+		"AUTO: OFF",
+		UDim2.new(0.5, 5, 0, 42),
+		UDim2.new(0.5, -17, 0, 44),
+		COLOR_RED
+	)
+
+	local worldStatus = Instance.new("TextLabel")
+	worldStatus.Size = UDim2.new(1, -12, 0, 28)
+	worldStatus.Position = UDim2.fromOffset(6, 226)
+	worldStatus.BackgroundTransparency = 1
+	worldStatus.Text = "World 1 selected"
+	worldStatus.TextColor3 = COLOR_MUTED
+	worldStatus.Font = Enum.Font.GothamMedium
+	worldStatus.TextSize = 10
+	worldStatus.Parent = worldsPage
+
+	local bossReadyPanel = makePanel(
+		bossPage,
+		UDim2.fromOffset(0, 0),
+		UDim2.new(1, 0, 0, 58)
+	)
+
+	local bossReadyLabel = Instance.new("TextLabel")
+	bossReadyLabel.Size = UDim2.new(1, -20, 1, -16)
+	bossReadyLabel.Position = UDim2.fromOffset(10, 8)
+	bossReadyLabel.BackgroundColor3 = COLOR_PANEL_2
+	bossReadyLabel.BorderSizePixel = 0
+	bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
+	bossReadyLabel.TextColor3 = COLOR_ORANGE
+	bossReadyLabel.Font = Enum.Font.GothamBold
+	bossReadyLabel.TextSize = 10
+	bossReadyLabel.Parent = bossReadyPanel
+	addCorner(bossReadyLabel, 12)
+
+	local bossStatsPanel = makePanel(
+		bossPage,
+		UDim2.fromOffset(0, 68),
+		UDim2.new(1, 0, 0, 112)
+	)
+
+	local bossHealthLabel = Instance.new("TextLabel")
+	bossHealthLabel.Size = UDim2.new(1, -20, 0, 34)
+	bossHealthLabel.Position = UDim2.fromOffset(10, 10)
+	bossHealthLabel.BackgroundColor3 = COLOR_PANEL_2
+	bossHealthLabel.BorderSizePixel = 0
+	bossHealthLabel.Text = "Boss Health • 0 / 0"
+	bossHealthLabel.TextColor3 = COLOR_TEXT
+	bossHealthLabel.Font = Enum.Font.GothamBold
+	bossHealthLabel.TextSize = 11
+	bossHealthLabel.Parent = bossStatsPanel
+	addCorner(bossHealthLabel, 12)
+
+	local myDamageLabel = Instance.new("TextLabel")
+	myDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
+	myDamageLabel.Position = UDim2.fromOffset(10, 54)
+	myDamageLabel.BackgroundColor3 = COLOR_PANEL_2
+	myDamageLabel.BorderSizePixel = 0
+	myDamageLabel.Text = "My Dmg\n0"
+	myDamageLabel.TextColor3 = COLOR_GREEN
+	myDamageLabel.Font = Enum.Font.GothamBold
+	myDamageLabel.TextSize = 11
+	myDamageLabel.Parent = bossStatsPanel
+	addCorner(myDamageLabel, 12)
+
+	local othersDamageLabel = Instance.new("TextLabel")
+	othersDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
+	othersDamageLabel.Position = UDim2.new(0.5, 5, 0, 54)
+	othersDamageLabel.BackgroundColor3 = COLOR_PANEL_2
+	othersDamageLabel.BorderSizePixel = 0
+	othersDamageLabel.Text = "Others Dmg\n0"
+	othersDamageLabel.TextColor3 = COLOR_ORANGE
+	othersDamageLabel.Font = Enum.Font.GothamBold
+	othersDamageLabel.TextSize = 11
+	othersDamageLabel.Parent = bossStatsPanel
+	addCorner(othersDamageLabel, 12)
+
+	local bossActionsPanel = makePanel(
+		bossPage,
+		UDim2.fromOffset(0, 190),
+		UDim2.new(1, 0, 0, 100)
+	)
+
+	local manualOrbButton = makeButton(
+		bossActionsPanel,
+		"MANUAL ORB",
+		UDim2.fromOffset(12, 12),
+		UDim2.new(0.5, -17, 0, 42),
+		COLOR_PURPLE
+	)
+
+	local autoOrbButton = makeButton(
+		bossActionsPanel,
+		"AUTO: OFF",
+		UDim2.new(0.5, 5, 0, 12),
+		UDim2.new(0.5, -17, 0, 42),
+		COLOR_RED
+	)
+
+	local bossStatus = Instance.new("TextLabel")
+	bossStatus.Size = UDim2.new(1, -24, 0, 28)
+	bossStatus.Position = UDim2.fromOffset(12, 61)
+	bossStatus.BackgroundTransparency = 1
+	bossStatus.Text = "Wait for the boss to be ready."
+	bossStatus.TextColor3 = COLOR_ORANGE
+	bossStatus.Font = Enum.Font.GothamMedium
+	bossStatus.TextSize = 10
+	bossStatus.Parent = bossActionsPanel
+
+	local function refreshScaleUI()
+		hubScale.Scale = hubScaleValue
+		scaleLabel.Text = tostring(math.floor(hubScaleValue * 100 + 0.5)) .. "%"
+	end
+
+	local function setHubScale(newScale)
+		hubScaleValue = math.clamp(
+			math.floor((newScale / HUB_SCALE_STEP) + 0.5)
+				* HUB_SCALE_STEP,
+			HUB_SCALE_MIN,
+			HUB_SCALE_MAX
+		)
+
+		refreshScaleUI()
+	end
+
+	scaleMinus.MouseButton1Click:Connect(function()
+		setHubScale(hubScaleValue - HUB_SCALE_STEP)
+	end)
+
+	scalePlus.MouseButton1Click:Connect(function()
+		setHubScale(hubScaleValue + HUB_SCALE_STEP)
+	end)
+
+	scaleMinus.MouseEnter:Connect(function()
+		scaleMinus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+	end)
+
+	scaleMinus.MouseLeave:Connect(function()
+		scaleMinus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+	end)
+
+	scalePlus.MouseEnter:Connect(function()
+		scalePlus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+	end)
+
+	scalePlus.MouseLeave:Connect(function()
+		scalePlus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+	end)
+
+	local function getCurrentPage()
+		if currentTab == "General" then
+			return generalPage
+		elseif currentTab == "Worlds" then
+			return worldsPage
+		else
+			return bossPage
+		end
+	end
+
+	local function getVisibleContentBottom(page)
+		local bottom = 0
+
+		for _, child in ipairs(page:GetChildren()) do
+			if child:IsA("GuiObject") and child.Visible then
+				local y = child.Position.Y.Offset
+				local height = child.Size.Y.Offset
+				bottom = math.max(bottom, y + height)
 			end
 		end
 
-		refreshFarmUI()
-	end)
-end)
-
-task.spawn(function()
-	while not closed do
-		task.wait(1)
-
-		refreshFarmUI()
-		refreshBossUI()
-
-		if not bossRemoteConnection then
-			connectBossRemote()
-		end
+		return bottom
 	end
-end)
 
-minimize.MouseButton1Click:Connect(function()
-	minimized = not minimized
+	local function updateWindowHeight()
+		if minimized or closed then
+			return
+		end
 
-	if minimized then
-		frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 58)
-		tabs.Visible = false
-		content.Visible = false
-		minimize.Text = "+"
-	else
-		tabs.Visible = true
-		content.Visible = true
-		minimize.Text = "-"
-		updateTabs()
+		local page = getCurrentPage()
+		local contentBottom = getVisibleContentBottom(page)
+
+		local desiredHeight =
+			TOP_CONTENT_OFFSET
+			+ contentBottom
+			+ BOTTOM_PADDING
+
+		desiredHeight = math.clamp(
+			desiredHeight,
+			MIN_WINDOW_HEIGHT,
+			MAX_WINDOW_HEIGHT
+		)
+
+		frame.Size = UDim2.fromOffset(WINDOW_WIDTH, desiredHeight)
+		content.Size = UDim2.new(
+			1,
+			-20,
+			0,
+			desiredHeight - TOP_CONTENT_OFFSET - 6
+		)
+	end
+
+	local function updateTabs()
+		generalPage.Visible = currentTab == "General"
+		worldsPage.Visible = currentTab == "Worlds"
+		bossPage.Visible = currentTab == "Boss"
+
+		generalTab.BackgroundColor3 =
+			currentTab == "General" and COLOR_BLUE or COLOR_PANEL_2
+
+		worldsTab.BackgroundColor3 =
+			currentTab == "Worlds" and COLOR_BLUE or COLOR_PANEL_2
+
+		bossTab.BackgroundColor3 =
+			currentTab == "Boss" and COLOR_BLUE or COLOR_PANEL_2
+
 		updateWindowHeight()
 	end
-end)
 
-close.MouseButton1Click:Connect(function()
-	closed = true
-	worldAuto = false
-	bossAuto = false
-	stopFarm()
+	local function refreshFarmUI()
+		local best = farmSelected or getBestTreadmill()
 
-	if bossRemoteConnection then
-		bossRemoteConnection:Disconnect()
-		bossRemoteConnection = nil
+		if best then
+			farmInfo.Text =
+				"Speed Training (Requires "
+				.. formatNumber(best.Requirement)
+				.. " Rebirth(s) • x"
+				.. formatNumber(best.Multiplier)
+				.. ")"
+		else
+			farmInfo.Text = "Speed Training (No eligible treadmill)"
+		end
+
+		if farmActive then
+			farmDot.BackgroundColor3 = COLOR_GREEN
+			farmState.Text = "Active"
+			farmState.TextColor3 = COLOR_GREEN
+			farmStart.Visible = false
+			farmInfo.Visible = false
+			farmStop.Visible = true
+		else
+			farmDot.BackgroundColor3 = COLOR_RED
+			farmState.Text = "Disabled"
+			farmState.TextColor3 = COLOR_RED
+			farmStart.Visible = true
+			farmInfo.Visible = true
+			farmStop.Visible = false
+		end
+
+		updateWindowHeight()
 	end
 
-	gui:Destroy()
+	local function refreshWorldUI()
+		world1Button.BackgroundColor3 =
+			selectedWorld == 1 and COLOR_BLUE or COLOR_PANEL_2
+
+		world2Button.BackgroundColor3 =
+			selectedWorld == 2 and COLOR_BLUE or COLOR_PANEL_2
+
+		if worldAuto then
+			autoWorldButton.Text = "AUTO: ON"
+			autoWorldButton.BackgroundColor3 = COLOR_GREEN
+			worldStatus.Text =
+				"World "
+				.. tostring(selectedWorld)
+				.. " selected • Auto active"
+			worldStatus.TextColor3 = COLOR_GREEN
+		else
+			autoWorldButton.Text = "AUTO: OFF"
+			autoWorldButton.BackgroundColor3 = COLOR_RED
+			worldStatus.Text =
+				"World "
+				.. tostring(selectedWorld)
+				.. " selected"
+			worldStatus.TextColor3 = COLOR_MUTED
+		end
+
+		updateWindowHeight()
+	end
+
+	local function refreshBossUI()
+		local ready = isBossReady()
+		local orbCount = #getDamageOrbs()
+
+		if ready then
+			bossReadyLabel.Text = "BOSS READY"
+			bossReadyLabel.TextColor3 = COLOR_GREEN
+		else
+			bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
+			bossReadyLabel.TextColor3 = COLOR_ORANGE
+		end
+
+		bossHealthLabel.Text =
+			"Boss Health • "
+			.. formatNumber(bossCurrentHealth)
+			.. " / "
+			.. formatNumber(bossMaxHealth)
+
+		myDamageLabel.Text = "My Dmg\n" .. formatNumber(bossMyDamage)
+		othersDamageLabel.Text = "Others Dmg\n" .. formatNumber(bossOthersDamage)
+
+		if bossAuto then
+			autoOrbButton.Text = "AUTO: ON"
+			autoOrbButton.BackgroundColor3 = COLOR_GREEN
+		else
+			autoOrbButton.Text = "AUTO: OFF"
+			autoOrbButton.BackgroundColor3 = COLOR_RED
+		end
+
+		if not ready then
+			bossStatus.Text = bossAuto
+				and "AUTO ON • Waiting for the boss."
+				or "Wait for the boss to be ready."
+
+			bossStatus.TextColor3 = COLOR_ORANGE
+		elseif orbCount <= 0 then
+			bossStatus.Text = "Boss ready • Waiting for DamageOrbs..."
+			bossStatus.TextColor3 = COLOR_ORANGE
+		else
+			bossStatus.Text =
+				"Boss ready • "
+				.. tostring(orbCount)
+				.. " DamageOrb(s)"
+
+			bossStatus.TextColor3 =
+				bossAuto and COLOR_GREEN or COLOR_MUTED
+		end
+
+		updateWindowHeight()
+	end
+
+	generalTab.MouseButton1Click:Connect(function()
+		currentTab = "General"
+		updateTabs()
+	end)
+
+	worldsTab.MouseButton1Click:Connect(function()
+		currentTab = "Worlds"
+		updateTabs()
+	end)
+
+	bossTab.MouseButton1Click:Connect(function()
+		currentTab = "Boss"
+		updateTabs()
+	end)
+
+	farmStart.MouseButton1Click:Connect(function()
+		startBestFarm()
+		refreshFarmUI()
+	end)
+
+	farmStop.MouseButton1Click:Connect(function()
+		stopFarm()
+		refreshFarmUI()
+	end)
+
+	world1Button.MouseButton1Click:Connect(function()
+		selectedWorld = 1
+		refreshWorldUI()
+
+		if worldAuto then
+			teleportSelectedWorld()
+		end
+	end)
+
+	world2Button.MouseButton1Click:Connect(function()
+		selectedWorld = 2
+		refreshWorldUI()
+
+		if worldAuto then
+			teleportSelectedWorld()
+		end
+	end)
+
+	world3Button.MouseButton1Click:Connect(function()
+		worldStatus.Text = "World 3 • Coming Soon..."
+		worldStatus.TextColor3 = COLOR_ORANGE
+		updateWindowHeight()
+	end)
+
+	manualWorldButton.MouseButton1Click:Connect(function()
+		teleportSelectedWorld()
+	end)
+
+	autoWorldButton.MouseButton1Click:Connect(function()
+		worldAuto = not worldAuto
+		refreshWorldUI()
+	end)
+
+	task.spawn(function()
+		while not closed do
+			task.wait(WORLD_AUTO_INTERVAL)
+
+			if worldAuto then
+				pcall(teleportSelectedWorld)
+			end
+		end
+	end)
+
+	manualOrbButton.MouseButton1Click:Connect(function()
+		if isBossReady() then
+			teleportNearestOrb()
+		end
+
+		refreshBossUI()
+	end)
+
+	autoOrbButton.MouseButton1Click:Connect(function()
+		bossAuto = not bossAuto
+		refreshBossUI()
+	end)
+
+	task.spawn(function()
+		while not closed do
+			task.wait(BOSS_ORB_INTERVAL)
+
+			if bossAuto and isBossReady() then
+				pcall(teleportNextOrb)
+			end
+		end
+	end)
+
+	RunService.RenderStepped:Connect(function()
+		if farmInfo.Visible and farmInfo.Parent then
+			farmInfo.TextColor3 =
+				Color3.fromHSV((os.clock() * 0.16) % 1, 0.85, 1)
+		end
+	end)
+
+	player.CharacterAdded:Connect(function()
+		local restoreFarm = farmActive
+
+		if farmConnection then
+			farmConnection:Disconnect()
+			farmConnection = nil
+		end
+
+		stopFarmAnimation()
+		farmAnchorCFrame = nil
+
+		task.delay(1, function()
+			if closed then
+				return
+			end
+
+			if restoreFarm then
+				for _ = 1, 8 do
+					if startBestFarm() then
+						break
+					end
+
+					task.wait(0.5)
+				end
+			end
+
+			refreshFarmUI()
+		end)
+	end)
+
+	task.spawn(function()
+		while not closed do
+			task.wait(1)
+
+			refreshFarmUI()
+			refreshBossUI()
+
+			if not bossRemoteConnection then
+				connectBossRemote()
+			end
+		end
+	end)
+
+	minimize.MouseButton1Click:Connect(function()
+		minimized = not minimized
+
+		if minimized then
+			frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 58)
+			tabs.Visible = false
+			content.Visible = false
+			minimize.Text = "+"
+		else
+			tabs.Visible = true
+			content.Visible = true
+			minimize.Text = "-"
+			updateTabs()
+			updateWindowHeight()
+		end
+	end)
+
+	close.MouseButton1Click:Connect(function()
+		closed = true
+		worldAuto = false
+		bossAuto = false
+		stopFarm()
+
+		if bossRemoteConnection then
+			bossRemoteConnection:Disconnect()
+			bossRemoteConnection = nil
+		end
+
+		gui:Destroy()
+	end)
+
+	connectBossRemote()
+	refreshScaleUI()
+	updateTabs()
+	refreshFarmUI()
+	refreshWorldUI()
+	refreshBossUI()
+end
+
+local q2v8k4 = game:GetService("Players")
+local y6n3c1 = game:GetService("TweenService")
+local j9r5t2 = game:GetService("UserInputService")
+local z4h8p6 = q2v8k4.LocalPlayer
+local a1s7d3 = z4h8p6:WaitForChild("PlayerGui")
+
+local f6g2l9 = "https://raw.githubusercontent.com/AnonymosScripts/Script-1-Evolvy-Hub/refs/heads/main/Key.txt"
+
+local o8k4w1 = a1s7d3:FindFirstChild("AnonymousHubKeySystem")
+if o8k4w1 then
+	o8k4w1:Destroy()
+end
+
+local c3m7x5 = Instance.new("ScreenGui")
+c3m7x5.Name = "AnonymousHubKeySystem"
+c3m7x5.ResetOnSpawn = false
+c3m7x5.IgnoreGuiInset = false
+c3m7x5.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+c3m7x5.Parent = a1s7d3
+
+local u4b9e2 = Instance.new("Frame")
+u4b9e2.AnchorPoint = Vector2.new(0.5, 0.5)
+u4b9e2.Size = UDim2.fromOffset(390, 292)
+u4b9e2.Position = UDim2.fromScale(0.5, 0.5)
+u4b9e2.BackgroundColor3 = Color3.fromRGB(11, 13, 20)
+u4b9e2.BorderSizePixel = 0
+u4b9e2.Active = true
+u4b9e2.Draggable = true
+u4b9e2.ClipsDescendants = true
+u4b9e2.Parent = c3m7x5
+
+local k5a1r8 = Instance.new("UICorner")
+k5a1r8.CornerRadius = UDim.new(0, 24)
+k5a1r8.Parent = u4b9e2
+
+local t2d6v9 = Instance.new("UIStroke")
+t2d6v9.Color = Color3.fromRGB(0, 170, 255)
+t2d6v9.Thickness = 1.5
+t2d6v9.Transparency = 0.18
+t2d6v9.Parent = u4b9e2
+
+local n7q3f5 = Instance.new("Frame")
+n7q3f5.Size = UDim2.new(1, 0, 0, 66)
+n7q3f5.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+n7q3f5.BorderSizePixel = 0
+n7q3f5.Parent = u4b9e2
+
+local b8c4m1 = Instance.new("UICorner")
+b8c4m1.CornerRadius = UDim.new(0, 24)
+b8c4m1.Parent = n7q3f5
+
+local h9p2s6 = Instance.new("Frame")
+h9p2s6.Size = UDim2.new(1, 0, 0, 20)
+h9p2s6.Position = UDim2.new(0, 0, 1, -20)
+h9p2s6.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+h9p2s6.BorderSizePixel = 0
+h9p2s6.Parent = n7q3f5
+
+local e1w7j4 = Instance.new("UIGradient")
+e1w7j4.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 175, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 70, 235))
+})
+e1w7j4.Parent = n7q3f5
+
+local s6y3k8 = Instance.new("TextLabel")
+s6y3k8.Size = UDim2.new(1, -28, 0, 30)
+s6y3k8.Position = UDim2.fromOffset(16, 8)
+s6y3k8.BackgroundTransparency = 1
+s6y3k8.Text = "ANONYMOUS HUB"
+s6y3k8.TextColor3 = Color3.fromRGB(255, 255, 255)
+s6y3k8.Font = Enum.Font.GothamBold
+s6y3k8.TextSize = 20
+s6y3k8.TextXAlignment = Enum.TextXAlignment.Left
+s6y3k8.Parent = n7q3f5
+
+local d4r8u2 = Instance.new("TextLabel")
+d4r8u2.Size = UDim2.new(1, -28, 0, 18)
+d4r8u2.Position = UDim2.fromOffset(17, 38)
+d4r8u2.BackgroundTransparency = 1
+d4r8u2.Text = "Key Verification"
+d4r8u2.TextColor3 = Color3.fromRGB(225, 232, 255)
+d4r8u2.Font = Enum.Font.GothamMedium
+d4r8u2.TextSize = 10
+d4r8u2.TextXAlignment = Enum.TextXAlignment.Left
+d4r8u2.Parent = n7q3f5
+
+local g2x9n4 = Instance.new("TextBox")
+g2x9n4.Size = UDim2.new(1, -32, 0, 46)
+g2x9n4.Position = UDim2.fromOffset(16, 88)
+g2x9n4.BackgroundColor3 = Color3.fromRGB(26, 29, 43)
+g2x9n4.BorderSizePixel = 0
+g2x9n4.PlaceholderText = "Enter your key..."
+g2x9n4.PlaceholderColor3 = Color3.fromRGB(130, 138, 165)
+g2x9n4.Text = ""
+g2x9n4.TextColor3 = Color3.fromRGB(255, 255, 255)
+g2x9n4.Font = Enum.Font.GothamMedium
+g2x9n4.TextSize = 13
+g2x9n4.ClearTextOnFocus = false
+g2x9n4.Parent = u4b9e2
+
+local l5f1a7 = Instance.new("UICorner")
+l5f1a7.CornerRadius = UDim.new(0, 13)
+l5f1a7.Parent = g2x9n4
+
+local v8m3q6 = Instance.new("UIStroke")
+v8m3q6.Color = Color3.fromRGB(70, 78, 110)
+v8m3q6.Transparency = 0.45
+v8m3q6.Parent = g2x9n4
+
+local r1c6z9 = Instance.new("TextButton")
+r1c6z9.Size = UDim2.new(1, -32, 0, 44)
+r1c6z9.Position = UDim2.fromOffset(16, 145)
+r1c6z9.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+r1c6z9.BorderSizePixel = 0
+r1c6z9.Text = "CHECK KEY"
+r1c6z9.TextColor3 = Color3.fromRGB(255, 255, 255)
+r1c6z9.Font = Enum.Font.GothamBold
+r1c6z9.TextSize = 13
+r1c6z9.AutoButtonColor = false
+r1c6z9.Parent = u4b9e2
+
+local p9j4e2 = Instance.new("UICorner")
+p9j4e2.CornerRadius = UDim.new(0, 13)
+p9j4e2.Parent = r1c6z9
+
+local w3t8h5 = Instance.new("TextLabel")
+w3t8h5.Size = UDim2.new(1, -32, 0, 28)
+w3t8h5.Position = UDim2.fromOffset(16, 198)
+w3t8h5.BackgroundTransparency = 1
+w3t8h5.Text = "Enter the key shown in the video."
+w3t8h5.TextColor3 = Color3.fromRGB(155, 160, 185)
+w3t8h5.Font = Enum.Font.GothamMedium
+w3t8h5.TextSize = 11
+w3t8h5.TextWrapped = true
+w3t8h5.Parent = u4b9e2
+
+local i7u2o4 = Instance.new("Frame")
+i7u2o4.Size = UDim2.new(1, -32, 0, 10)
+i7u2o4.Position = UDim2.fromOffset(16, 231)
+i7u2o4.BackgroundColor3 = Color3.fromRGB(31, 34, 48)
+i7u2o4.BorderSizePixel = 0
+i7u2o4.Visible = false
+i7u2o4.Parent = u4b9e2
+
+local x6d9b3 = Instance.new("UICorner")
+x6d9b3.CornerRadius = UDim.new(1, 0)
+x6d9b3.Parent = i7u2o4
+
+local m4s8c1 = Instance.new("Frame")
+m4s8c1.Size = UDim2.fromScale(0, 1)
+m4s8c1.BackgroundColor3 = Color3.fromRGB(0, 210, 115)
+m4s8c1.BorderSizePixel = 0
+m4s8c1.Parent = i7u2o4
+
+local a9k5r2 = Instance.new("UICorner")
+a9k5r2.CornerRadius = UDim.new(1, 0)
+a9k5r2.Parent = m4s8c1
+
+local q8e1v6 = Instance.new("TextLabel")
+q8e1v6.Size = UDim2.new(1, -32, 0, 20)
+q8e1v6.Position = UDim2.fromOffset(16, 252)
+q8e1v6.BackgroundTransparency = 1
+q8e1v6.Text = "By: @AnonymousApks_Scripts"
+q8e1v6.TextColor3 = Color3.fromRGB(120, 128, 155)
+q8e1v6.Font = Enum.Font.GothamMedium
+q8e1v6.TextSize = 9
+q8e1v6.Parent = u4b9e2
+
+local f1n7y3 = false
+
+local function c6v2p8(q1w5m7)
+	return tostring(q1w5m7 or ""):match("^%s*(.-)%s*$")
+end
+
+local function b4z9t1()
+	local y7h3x6, d2m8k5 = pcall(function()
+		return game:HttpGet(f6g2l9 .. "?t=" .. tostring(os.time()))
+	end)
+
+	if not y7h3x6 then
+		return nil
+	end
+
+	return c6v2p8(d2m8k5)
+end
+
+local function h5q1s9(p3e7j4, k8c2n6)
+	w3t8h5.Text = p3e7j4
+	w3t8h5.TextColor3 = k8c2n6
+end
+
+local function u9r4g2()
+	if f1n7y3 then
+		return
+	end
+
+	f1n7y3 = true
+	r1c6z9.Text = "VERIFYING..."
+	r1c6z9.BackgroundColor3 = Color3.fromRGB(65, 75, 110)
+	g2x9n4.TextEditable = false
+	h5q1s9("Checking your key...", Color3.fromRGB(255, 190, 75))
+
+	local b7p3x1 = b4z9t1()
+
+	if not b7p3x1 then
+		f1n7y3 = false
+		g2x9n4.TextEditable = true
+		r1c6z9.Text = "TRY AGAIN"
+		r1c6z9.BackgroundColor3 = Color3.fromRGB(245, 75, 90)
+		h5q1s9(
+			"Unable to load the key. YouTube Channel: @AnonymousApks_Scripts",
+			Color3.fromRGB(245, 75, 90)
+		)
+		return
+	end
+
+	if c6v2p8(g2x9n4.Text) ~= b7p3x1 then
+		f1n7y3 = false
+		g2x9n4.TextEditable = true
+		r1c6z9.Text = "INVALID KEY"
+		r1c6z9.BackgroundColor3 = Color3.fromRGB(245, 75, 90)
+		v8m3q6.Color = Color3.fromRGB(245, 75, 90)
+		h5q1s9(
+			"Invalid key. YouTube Channel: @AnonymousApks_Scripts",
+			Color3.fromRGB(245, 75, 90)
+		)
+		return
+	end
+
+	r1c6z9.Text = "KEY ACCEPTED"
+	r1c6z9.BackgroundColor3 = Color3.fromRGB(0, 200, 110)
+	v8m3q6.Color = Color3.fromRGB(0, 200, 110)
+	h5q1s9("Loading Functions...", Color3.fromRGB(0, 220, 125))
+	q8e1v6.Text = "By: @AnonymousApks_Scripts"
+	q8e1v6.TextColor3 = Color3.fromRGB(0, 210, 115)
+	i7u2o4.Visible = true
+
+	local l2d8a5 = y6n3c1:Create(
+		m4s8c1,
+		TweenInfo.new(2.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{Size = UDim2.fromScale(1, 1)}
+	)
+
+	l2d8a5:Play()
+	l2d8a5.Completed:Wait()
+
+	h5q1s9("All functions loaded successfully.", Color3.fromRGB(0, 220, 125))
+	task.wait(0.45)
+
+	y6n3c1:Create(
+		u4b9e2,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{
+			Size = UDim2.fromOffset(350, 245),
+			BackgroundTransparency = 1
+		}
+	):Play()
+
+	task.wait(0.28)
+	c3m7x5:Destroy()
+	p7x1m9()
+end
+
+r1c6z9.MouseButton1Click:Connect(u9r4g2)
+
+g2x9n4.FocusLost:Connect(function(n4f8c2)
+	if n4f8c2 then
+		u9r4g2()
+	end
 end)
 
-connectBossRemote()
-refreshScaleUI()
-updateTabs()
-refreshFarmUI()
-refreshWorldUI()
-refreshBossUI()
+r1c6z9.MouseEnter:Connect(function()
+	if not f1n7y3 then
+		r1c6z9.BackgroundColor3 = Color3.fromRGB(0, 175, 255)
+	end
+end)
+
+r1c6z9.MouseLeave:Connect(function()
+	if not f1n7y3 then
+		r1c6z9.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+	end
+end)

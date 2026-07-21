@@ -1,1213 +1,1721 @@
--- By: @AnonymousApks_Scripts yt
-local exv8qbm9ko = game:GetService("Players")
-local bt8f4nxu = game:GetService("ReplicatedStorage")
-local k5perfc177 = game:GetService("RunService")
-local glej9k3 = game:GetService("UserInputService")
-local vtlbg3aj = exv8qbm9ko.LocalPlayer
-local ly62bzs = vtlbg3aj:WaitForChild("PlayerGui")
-local e95zu6a6he = {
-[1] = Vector3.new(7983.75, 210.1, 480.69),
-[2] = Vector3.new(11910.93, 185.74, 971.65),
+-- By: @AnonymousApks_Scripts
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local WORLD_STAGE_POSITIONS = {
+	[1] = Vector3.new(7983.75, 210.10, 480.69),
+	[2] = Vector3.new(11910.93, 185.74, 971.65)
 }
-local vysocx = 1
-local qom3uze5 = false
-local wze5vs = 2
-local kfnljk = false
-local h45lrh5 = nil
-local nbixdlqyf = nil
-local ovsnqzs = nil
-local mjz5pqt8 = nil
-local wrh8urstq = 3
-local mbsojr0d0 = 1.1
-local ozeejed = false
-local l701uc84p3 = false
-local xgxvwm = 0
-local mqdga5a = 0
-local ilk6pdeu = nil
-local tssvd4jx = 0
-local wn4d2u = 0
-local lchws2 = false
-local uucuzzqg = 0
-local nr8wuv2i12 = 0.35
-local z28qpkw7 = 1.25
-local t6yfb88 = -math.huge
-local lmo1fj = "General"
-local erfuzi = false
-local wuiqmu5k = false
-local pudlm3my = 390
-local yr3yohxu = 114
-local ot2cx545e1 = 16
-local haokhyl = 360
-local p3jutl6lyb = 520
-local p246b1 = 0.65
-local tv08jlzn4u = 1.2
-local gqkoo4 = 0.05
-local cwo67x1 = 1
-local wavcgu = Color3.fromRGB(12, 12, 20)
-local s9bcxvy = Color3.fromRGB(20, 21, 33)
-local w8g9mpndij = Color3.fromRGB(42, 44, 62)
-local jeqe4c = Color3.fromRGB(0, 150, 255)
-local f0zftoic0 = Color3.fromRGB(0, 200, 110)
-local yagg8k = Color3.fromRGB(245, 75, 90)
-local m2lp5hajar = Color3.fromRGB(255, 170, 70)
-local ytzlv0aaf = Color3.fromRGB(145, 75, 230)
-local mq8facyxv = Color3.fromRGB(255, 255, 255)
-local vsdsfwg9bz = Color3.fromRGB(155, 160, 185)
-for ojtzmf, r65ol5u in ipairs({
-"AnonymousHubStableBase",
-"AnonymousHubSimpleStable",
-"AnonymousHubModern",
-"Anonymous_Hub",
+
+local selectedWorld = 1
+local worldAuto = false
+local WORLD_AUTO_INTERVAL = 2
+
+local farmActive = false
+local farmSelected = nil
+local farmAnchorCFrame = nil
+local farmAnimationTrack = nil
+local farmConnection = nil
+local FARM_POSITION_TOLERANCE = 3
+local FARM_ANIMATION_SPEED = 1.1
+
+local bossReady = false
+local bossRemoteKnown = false
+local bossCurrentHealth = 0
+local bossMaxHealth = 0
+local bossLastHealth = nil
+local bossMyDamage = 0
+local bossOthersDamage = 0
+
+local bossAuto = false
+local bossOrbIndex = 0
+local BOSS_ORB_INTERVAL = 0.35
+
+local MY_DAMAGE_WINDOW = 1.25
+local lastLocalOrbTouchTime = -math.huge
+
+local currentTab = "General"
+local minimized = false
+local closed = false
+
+local WINDOW_WIDTH = 390
+local TOP_CONTENT_OFFSET = 114
+local BOTTOM_PADDING = 16
+local MIN_WINDOW_HEIGHT = 360
+local MAX_WINDOW_HEIGHT = 520
+
+local HUB_SCALE_MIN = 0.65
+local HUB_SCALE_MAX = 1.20
+local HUB_SCALE_STEP = 0.05
+local hubScaleValue = 1
+
+local COLOR_BG = Color3.fromRGB(12, 12, 20)
+local COLOR_PANEL = Color3.fromRGB(20, 21, 33)
+local COLOR_PANEL_2 = Color3.fromRGB(42, 44, 62)
+local COLOR_BLUE = Color3.fromRGB(0, 150, 255)
+local COLOR_GREEN = Color3.fromRGB(0, 200, 110)
+local COLOR_RED = Color3.fromRGB(245, 75, 90)
+local COLOR_ORANGE = Color3.fromRGB(255, 170, 70)
+local COLOR_PURPLE = Color3.fromRGB(145, 75, 230)
+local COLOR_TEXT = Color3.fromRGB(255, 255, 255)
+local COLOR_MUTED = Color3.fromRGB(155, 160, 185)
+
+for _, name in ipairs({
+	"AnonymousHubStableBase",
+	"AnonymousHubSimpleStable",
+	"AnonymousHubModern",
+	"Anonymous_Hub"
 }) do
-local jy5olkvgy = ly62bzs:FindFirstChild(r65ol5u)
-if jy5olkvgy then
-jy5olkvgy:Destroy()
+	local old = playerGui:FindFirstChild(name)
+	if old then
+		old:Destroy()
+	end
 end
+
+local function addCorner(parent, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	corner.Parent = parent
+	return corner
 end
-local function ro8d8aht8(fqdzrwj, uwqub419)
-local lqmoqieuql = Instance.new("UICorner")
-lqmoqieuql.CornerRadius = UDim.new(0, uwqub419)
-lqmoqieuql.Parent = fqdzrwj
-return lqmoqieuql
+
+local function addStroke(parent, color, thickness, transparency)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color
+	stroke.Thickness = thickness or 1
+	stroke.Transparency = transparency or 0
+	stroke.Parent = parent
+	return stroke
 end
-local function i1l1vj(fqdzrwj, erxmivf4jd, h25evpy3, sabqnv9ws)
-local r73zujzzp = Instance.new("UIStroke")
-r73zujzzp.Color = erxmivf4jd
-r73zujzzp.Thickness = h25evpy3 or 1
-r73zujzzp.Transparency = sabqnv9ws or 0
-r73zujzzp.Parent = fqdzrwj
-return r73zujzzp
+
+local function normalize(value)
+	return string.lower(
+		string.gsub(tostring(value or ""), "[%s_%-%./:]", "")
+	)
 end
-local function qrss0w(r0im213l8)
-return string.lower(string.gsub(tostring(r0im213l8 or ""), "[%s_%-%./:]", ""))
+
+local function formatNumber(value)
+	local number = tonumber(value) or 0
+
+	if number >= 1e12 then
+		return string.format("%.2fT", number / 1e12)
+	elseif number >= 1e9 then
+		return string.format("%.2fB", number / 1e9)
+	elseif number >= 1e6 then
+		return string.format("%.2fM", number / 1e6)
+	elseif number >= 1e3 then
+		return string.format("%.2fK", number / 1e3)
+	end
+
+	if math.floor(number) == number then
+		return tostring(math.floor(number))
+	end
+
+	return string.format("%.2f", number)
 end
-local function qynagxo(r0im213l8)
-local e4lp1crmo5 = tonumber(r0im213l8) or 0
-if e4lp1crmo5 >= 1000000000000.0 then
-return string.format("%.2fT", e4lp1crmo5 / 1000000000000.0)
-elseif e4lp1crmo5 >= 1000000000.0 then
-return string.format("%.2fB", e4lp1crmo5 / 1000000000.0)
-elseif e4lp1crmo5 >= 1000000.0 then
-return string.format("%.2fM", e4lp1crmo5 / 1000000.0)
-elseif e4lp1crmo5 >= 1000.0 then
-return string.format("%.2fK", e4lp1crmo5 / 1000.0)
+
+local function getCharacter()
+	local character = player.Character
+
+	if not character or not character.Parent then
+		character = player.CharacterAdded:Wait()
+	end
+
+	return character
 end
-if math.floor(e4lp1crmo5) == e4lp1crmo5 then
-return tostring(math.floor(e4lp1crmo5))
+
+local function getHumanoid()
+	local character = getCharacter()
+	return character:FindFirstChildOfClass("Humanoid")
+		or character:WaitForChild("Humanoid", 5)
 end
-return string.format("%.2f", e4lp1crmo5)
+
+local function getRoot()
+	local character = getCharacter()
+	return character:FindFirstChild("HumanoidRootPart")
+		or character:WaitForChild("HumanoidRootPart", 5)
 end
-local function y0knf60()
-local yrd6s7prg = vtlbg3aj.Character
-if not yrd6s7prg or not yrd6s7prg.Parent then
-yrd6s7prg = vtlbg3aj.CharacterAdded:Wait()
+
+local function teleportToCFrame(targetCFrame)
+	local root = getRoot()
+
+	if not root then
+		return false
+	end
+
+	pcall(function()
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+	end)
+
+	root.CFrame = targetCFrame
+	return true
 end
-return yrd6s7prg
+
+local function getRebirths()
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local rebirths = leaderstats and leaderstats:FindFirstChild("Rebirths")
+	return rebirths and tonumber(rebirths.Value) or 0
 end
-local function ssrv6rg4()
-local yrd6s7prg = y0knf60()
-return yrd6s7prg:FindFirstChildOfClass("Humanoid") or yrd6s7prg:WaitForChild("Humanoid", 5)
+
+local function readNumber(instance, names)
+	if not instance then
+		return nil
+	end
+
+	for attributeName, attributeValue in pairs(instance:GetAttributes()) do
+		local key = normalize(attributeName)
+
+		for _, wanted in ipairs(names) do
+			if key == wanted or string.find(key, wanted, 1, true) then
+				local number = tonumber(attributeValue)
+				if number then
+					return number
+				end
+			end
+		end
+	end
+
+	for _, descendant in ipairs(instance:GetDescendants()) do
+		local key = normalize(descendant.Name)
+
+		for _, wanted in ipairs(names) do
+			if key == wanted or string.find(key, wanted, 1, true) then
+				if descendant:IsA("IntValue") or descendant:IsA("NumberValue") then
+					return tonumber(descendant.Value)
+				elseif descendant:IsA("StringValue") then
+					local number = tonumber(descendant.Value)
+					if number then
+						return number
+					end
+				end
+			end
+		end
+	end
+
+	return nil
 end
-local function pxd2wvxl9()
-local yrd6s7prg = y0knf60()
-return yrd6s7prg:FindFirstChild("HumanoidRootPart") or yrd6s7prg:WaitForChild("HumanoidRootPart", 5)
+
+local function getTexts(instance)
+	local texts = {instance and instance.Name or ""}
+
+	if not instance then
+		return texts
+	end
+
+	for _, descendant in ipairs(instance:GetDescendants()) do
+		if descendant:IsA("TextLabel")
+			or descendant:IsA("TextButton")
+			or descendant:IsA("TextBox") then
+
+			table.insert(texts, descendant.Text)
+		elseif descendant:IsA("StringValue") then
+			table.insert(texts, descendant.Value)
+		end
+	end
+
+	return texts
 end
-local function oxl5t4786(vj3houd)
-local zxjv3nx4 = pxd2wvxl9()
-if not zxjv3nx4 then
-return false
+
+local function readNamedNumber(instance, wantedNames)
+	return readNumber(instance, wantedNames)
 end
-pcall(function()
-zxjv3nx4.AssemblyLinearVelocity = Vector3.zero
-zxjv3nx4.AssemblyAngularVelocity = Vector3.zero
+
+local function readTextNumber(instance, patterns)
+	for _, textValue in ipairs(getTexts(instance)) do
+		for _, pattern in ipairs(patterns) do
+			local found = string.match(string.lower(tostring(textValue)), pattern)
+
+			if found then
+				return tonumber(found)
+			end
+		end
+	end
+
+	return nil
+end
+
+local function getTreadmillPart(instance)
+	if not instance then
+		return nil
+	end
+
+	if instance:IsA("BasePart") then
+		return instance
+	end
+
+	if instance:IsA("Model")
+		and instance.PrimaryPart
+		and instance.PrimaryPart:IsA("BasePart") then
+
+		return instance.PrimaryPart
+	end
+
+	for _, preferred in ipairs({
+		"Belt",
+		"Platform",
+		"MainPart",
+		"Base",
+		"Hitbox",
+		"Treadmill"
+	}) do
+		local part = instance:FindFirstChild(preferred, true)
+		if part and part:IsA("BasePart") then
+			return part
+		end
+	end
+
+	local bestPart = nil
+	local bestArea = 0
+
+	for _, descendant in ipairs(instance:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			local area = descendant.Size.X * descendant.Size.Z
+
+			if area > bestArea then
+				bestArea = area
+				bestPart = descendant
+			end
+		end
+	end
+
+	return bestPart
+end
+
+local function isPaidTreadmill(instance)
+	if not instance then
+		return false
+	end
+
+	local paidKeys = {
+		"robux",
+		"gamepass",
+		"product",
+		"developerproduct",
+		"premium",
+		"paid",
+		"purchase"
+	}
+
+	local combinedText = string.lower(instance.Name)
+
+	for attributeName, attributeValue in pairs(instance:GetAttributes()) do
+		local key = normalize(attributeName)
+		local valueText = string.lower(tostring(attributeValue))
+
+		for _, paidKey in ipairs(paidKeys) do
+			if string.find(key, paidKey, 1, true)
+				or string.find(valueText, paidKey, 1, true) then
+
+				return true
+			end
+		end
+
+		if (
+			key == "isrobux"
+			or key == "isgamepass"
+			or key == "ispaid"
+			or key == "requirespurchase"
+		) and attributeValue == true then
+
+			return true
+		end
+	end
+
+	for _, value in ipairs(getTexts(instance)) do
+		combinedText ..= " " .. string.lower(value)
+	end
+
+	for _, paidKey in ipairs(paidKeys) do
+		if string.find(combinedText, paidKey, 1, true) then
+			return true
+		end
+	end
+
+	if readNamedNumber(instance, {
+		"gamepassid",
+		"productid",
+		"developerproductid",
+		"robuxprice"
+	}) then
+		return true
+	end
+
+	return false
+end
+
+local function getTreadmillInfo(instance)
+	local requirement =
+		readNamedNumber(instance, {
+			"rebirthsrequired",
+			"requiredrebirths",
+			"rebirthrequirement",
+			"rebirths",
+			"rebirth"
+		})
+		or readTextNumber(instance, {
+			"(%d+)%s*rebirth",
+			"rebirth[%a%s:_%-]*(%d+)"
+		})
+		or 0
+
+	local multiplier =
+		readNamedNumber(instance, {
+			"speedmultiplier",
+			"treadmillmultiplier",
+			"multiplier",
+			"boost"
+		})
+		or readTextNumber(instance, {
+			"[xX]%s*(%d+%.?%d*)",
+			"(%d+%.?%d*)%s*[xX]"
+		})
+		or tonumber(string.match(string.lower(instance.Name), "[xX]%s*(%d+%.?%d*)"))
+		or tonumber(string.match(string.lower(instance.Name), "(%d+%.?%d*)%s*[xX]"))
+		or 1
+
+	return {
+		Instance = instance,
+		Part = getTreadmillPart(instance),
+		Requirement = math.max(0, tonumber(requirement) or 0),
+		Multiplier = math.max(1, tonumber(multiplier) or 1),
+		Paid = isPaidTreadmill(instance)
+	}
+end
+
+local function getBestTreadmill()
+	local folder = workspace:FindFirstChild("Treadmills")
+		or workspace:FindFirstChild("Treadmills", true)
+
+	if not folder then
+		return nil
+	end
+
+	local rebirths = getRebirths()
+	local candidates = {}
+
+	local paidMultipliers = {
+		[5] = true,
+		[27] = true,
+		[100] = true
+	}
+
+	local function addCandidate(instance)
+		if not (
+			instance:IsA("Model")
+			or instance:IsA("BasePart")
+		) then
+			return
+		end
+
+		local info = getTreadmillInfo(instance)
+
+		if not info.Part then
+			return
+		end
+
+		local knownRequirementByMultiplier = {
+			[1] = 0,
+			[3] = 2,
+			[9] = 5,
+			[50] = 15
+		}
+
+		if paidMultipliers[info.Multiplier] then
+			info.Paid = true
+		end
+
+		if knownRequirementByMultiplier[info.Multiplier] ~= nil then
+			info.Requirement =
+				knownRequirementByMultiplier[info.Multiplier]
+		end
+
+		local lowerName = string.lower(instance.Name)
+
+		if string.find(lowerName, "robux", 1, true)
+			or string.find(lowerName, "gamepass", 1, true)
+			or string.find(lowerName, "paid", 1, true) then
+
+			info.Paid = true
+		end
+
+		if not info.Paid then
+			table.insert(candidates, info)
+		end
+	end
+
+	for _, child in ipairs(folder:GetChildren()) do
+		addCandidate(child)
+	end
+
+	if #candidates == 0 then
+		for _, descendant in ipairs(folder:GetDescendants()) do
+			if descendant:IsA("Model") then
+				addCandidate(descendant)
+			end
+		end
+	end
+
+	local best = nil
+
+	for _, info in ipairs(candidates) do
+		if info.Requirement <= rebirths then
+			if not best
+				or info.Requirement > best.Requirement
+				or (
+					info.Requirement == best.Requirement
+					and info.Multiplier > best.Multiplier
+				) then
+
+				best = info
+			end
+		end
+	end
+
+	if rebirths <= 0 then
+		local initial = nil
+
+		for _, info in ipairs(candidates) do
+			if info.Requirement == 0
+				and info.Multiplier == 1 then
+
+				initial = info
+				break
+			end
+		end
+
+		if initial then
+			best = initial
+		end
+	end
+
+	return best
+end
+
+local function getTreadmillCFrame(info)
+	if not info or not info.Part or not info.Part:IsDescendantOf(workspace) then
+		return nil
+	end
+
+	local root = getRoot()
+	local humanoid = getHumanoid()
+
+	if not root or not humanoid then
+		return nil
+	end
+
+	local part = info.Part
+	local y =
+		part.Position.Y
+		+ (part.Size.Y / 2)
+		+ humanoid.HipHeight
+		+ (root.Size.Y / 2)
+		+ 0.1
+
+	local position = Vector3.new(part.Position.X, y, part.Position.Z)
+	local look = part.CFrame.LookVector
+
+	return CFrame.lookAt(position, position + look)
+end
+
+local function stopFarmAnimation()
+	if farmAnimationTrack then
+		pcall(function()
+			farmAnimationTrack:Stop(0.15)
+			farmAnimationTrack:Destroy()
+		end)
+
+		farmAnimationTrack = nil
+	end
+end
+
+local function playFarmAnimation()
+	stopFarmAnimation()
+
+	local humanoid = getHumanoid()
+
+	if not humanoid then
+		return false
+	end
+
+	local animator = humanoid:FindFirstChildOfClass("Animator")
+
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = humanoid
+	end
+
+	local animation = Instance.new("Animation")
+	animation.AnimationId =
+		humanoid.RigType == Enum.HumanoidRigType.R6
+		and "rbxassetid://180426354"
+		or "rbxassetid://507777826"
+
+	local success, track = pcall(function()
+		return animator:LoadAnimation(animation)
+	end)
+
+	animation:Destroy()
+
+	if not success or not track then
+		return false
+	end
+
+	track.Priority = Enum.AnimationPriority.Action
+	track.Looped = true
+	track:Play(0.15, 1, FARM_ANIMATION_SPEED)
+	track:AdjustSpeed(FARM_ANIMATION_SPEED)
+
+	farmAnimationTrack = track
+	return true
+end
+
+local function stopFarm()
+	farmActive = false
+	farmSelected = nil
+	farmAnchorCFrame = nil
+
+	if farmConnection then
+		farmConnection:Disconnect()
+		farmConnection = nil
+	end
+
+	stopFarmAnimation()
+
+	local humanoid = player.Character
+		and player.Character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		humanoid.AutoRotate = true
+	end
+end
+
+local function startBestFarm()
+	local best = getBestTreadmill()
+
+	if not best then
+		return false
+	end
+
+	local target = getTreadmillCFrame(best)
+
+	if not target then
+		return false
+	end
+
+	stopFarm()
+
+	local humanoid = getHumanoid()
+
+	if not humanoid then
+		return false
+	end
+
+	farmActive = true
+	farmSelected = best
+	farmAnchorCFrame = target
+	humanoid.AutoRotate = false
+
+	teleportToCFrame(target)
+	playFarmAnimation()
+
+	farmConnection = RunService.Heartbeat:Connect(function()
+		if not farmActive or not farmAnchorCFrame then
+			return
+		end
+
+		local root = getRoot()
+		local currentHumanoid = getHumanoid()
+
+		if not root or not currentHumanoid or currentHumanoid.Health <= 0 then
+			return
+		end
+
+		if (root.Position - farmAnchorCFrame.Position).Magnitude
+			> FARM_POSITION_TOLERANCE then
+
+			root.CFrame = farmAnchorCFrame
+		end
+
+		pcall(function()
+			root.AssemblyLinearVelocity = Vector3.zero
+			root.AssemblyAngularVelocity = Vector3.zero
+		end)
+	end)
+
+	return true
+end
+
+local function teleportSelectedWorld()
+	local root = getRoot()
+	local position = WORLD_STAGE_POSITIONS[selectedWorld]
+
+	if not root or not position then
+		return false
+	end
+
+	return teleportToCFrame(
+		CFrame.new(position) * root.CFrame.Rotation
+	)
+end
+
+local function isDamageOrbName(name)
+	return string.find(normalize(name), "damageorb", 1, true) ~= nil
+end
+
+local function getOrbPart(instance)
+	if instance:IsA("BasePart") then
+		return instance
+	elseif instance:IsA("Model") then
+		if instance.PrimaryPart then
+			return instance.PrimaryPart
+		end
+
+		return instance:FindFirstChildWhichIsA("BasePart", true)
+	end
+
+	return instance:FindFirstChildWhichIsA("BasePart", true)
+end
+
+local function getDamageOrbs()
+	local list = {}
+	local seen = {}
+
+	for _, descendant in ipairs(workspace:GetDescendants()) do
+		if (
+			descendant:IsA("Model")
+			or descendant:IsA("BasePart")
+		) and isDamageOrbName(descendant.Name) then
+
+			local part = getOrbPart(descendant)
+
+			if part and not seen[part] then
+				seen[part] = true
+
+				table.insert(list, {
+					Instance = descendant,
+					Part = part
+				})
+			end
+		end
+	end
+
+	return list
+end
+
+local function teleportNearestOrb()
+	local root = getRoot()
+
+	if not root then
+		return false
+	end
+
+	local nearest = nil
+	local nearestDistance = math.huge
+
+	for _, orb in ipairs(getDamageOrbs()) do
+		local distance = (root.Position - orb.Part.Position).Magnitude
+
+		if distance < nearestDistance then
+			nearestDistance = distance
+			nearest = orb
+		end
+	end
+
+	if not nearest then
+		return false
+	end
+
+	local success = teleportToCFrame(
+		CFrame.new(nearest.Part.Position) * root.CFrame.Rotation
+	)
+
+	if success then
+		lastLocalOrbTouchTime = os.clock()
+	end
+
+	return success
+end
+
+local function teleportNextOrb()
+	local orbs = getDamageOrbs()
+
+	if #orbs == 0 then
+		bossOrbIndex = 0
+		return false
+	end
+
+	bossOrbIndex += 1
+
+	if bossOrbIndex > #orbs then
+		bossOrbIndex = 1
+	end
+
+	local root = getRoot()
+
+	if not root then
+		return false
+	end
+
+	local success = teleportToCFrame(
+		CFrame.new(orbs[bossOrbIndex].Part.Position)
+			* root.CFrame.Rotation
+	)
+
+	if success then
+		lastLocalOrbTouchTime = os.clock()
+	end
+
+	return success
+end
+
+local function getBossRemote()
+	local modules = ReplicatedStorage:FindFirstChild("Modules")
+	local shared = modules and modules:FindFirstChild("Shared")
+	local serviceScript = shared and shared:FindFirstChild("RemoteEventService")
+
+	if not serviceScript then
+		return nil
+	end
+
+	local direct = serviceScript:FindFirstChild("BossFightRemoteEvent")
+
+	if direct and direct:IsA("RemoteEvent") then
+		return direct
+	end
+
+	local success, service = pcall(require, serviceScript)
+
+	if success and type(service) == "table" and type(service.Get) == "function" then
+		local ok, remote = pcall(service.Get, "BossFight")
+
+		if not ok then
+			ok, remote = pcall(service.Get, service, "BossFight")
+		end
+
+		if ok and remote and remote:IsA("RemoteEvent") then
+			return remote
+		end
+	end
+
+	return nil
+end
+
+local bossRemoteConnection = nil
+
+local function connectBossRemote()
+	if bossRemoteConnection then
+		bossRemoteConnection:Disconnect()
+		bossRemoteConnection = nil
+	end
+
+	local remote = getBossRemote()
+
+	if not remote then
+		return
+	end
+
+	bossRemoteConnection = remote.OnClientEvent:Connect(function(eventName, ...)
+		if eventName == "CutsceneEnd"
+			or eventName == "MiniBossFightStart" then
+
+			local maxHealth = tonumber((...)) or 0
+
+			bossReady = true
+			bossRemoteKnown = true
+			bossMaxHealth = maxHealth
+			bossCurrentHealth = maxHealth
+			bossLastHealth = maxHealth
+			bossMyDamage = 0
+			bossOthersDamage = 0
+			lastLocalOrbTouchTime = -math.huge
+
+		elseif eventName == "UpdateHealth" then
+			local currentHealth, maxHealth = ...
+
+			currentHealth = tonumber(currentHealth) or 0
+			maxHealth = tonumber(maxHealth) or bossMaxHealth
+
+			if bossLastHealth and currentHealth < bossLastHealth then
+				local damageDelta = bossLastHealth - currentHealth
+
+				if os.clock() - lastLocalOrbTouchTime <= MY_DAMAGE_WINDOW then
+					bossMyDamage += damageDelta
+				else
+					bossOthersDamage += damageDelta
+				end
+			end
+
+			bossCurrentHealth = currentHealth
+			bossMaxHealth = maxHealth
+			bossLastHealth = currentHealth
+			bossReady = currentHealth > 0
+			bossRemoteKnown = true
+
+		elseif eventName == "BossFightEnd"
+			or eventName == "DeathCutscene"
+			or eventName == "GateCloseCutscene"
+			or eventName == "DoorCutsceneStart"
+			or eventName == "StartCutscene" then
+
+			bossReady = false
+			bossRemoteKnown = true
+		end
+	end)
+end
+
+local function isBossReady()
+	if bossRemoteKnown then
+		return bossReady
+	end
+
+	return #getDamageOrbs() > 0
+end
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "AnonymousHubStableBase"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 390)
+frame.Position = UDim2.new(0.5, -195, 0.5, -195)
+frame.BackgroundColor3 = COLOR_BG
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.ClipsDescendants = true
+frame.Parent = gui
+addCorner(frame, 24)
+addStroke(frame, Color3.fromRGB(70, 80, 110), 1, 0.35)
+
+local hubScale = Instance.new("UIScale")
+hubScale.Scale = hubScaleValue
+hubScale.Parent = frame
+
+local topbar = Instance.new("Frame")
+topbar.Size = UDim2.new(1, 0, 0, 58)
+topbar.BackgroundColor3 = COLOR_BLUE
+topbar.BorderSizePixel = 0
+topbar.Parent = frame
+addCorner(topbar, 24)
+
+local topFix = Instance.new("Frame")
+topFix.Size = UDim2.new(1, 0, 0, 18)
+topFix.Position = UDim2.new(0, 0, 1, -18)
+topFix.BackgroundColor3 = COLOR_BLUE
+topFix.BorderSizePixel = 0
+topFix.Parent = topbar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.fromOffset(16, 0)
+title.BackgroundTransparency = 1
+title.Text = "ANONYMOUS HUB"
+title.TextColor3 = COLOR_TEXT
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topbar
+
+local minimize = Instance.new("TextButton")
+minimize.Size = UDim2.fromOffset(34, 34)
+minimize.Position = UDim2.new(1, -76, 0.5, -17)
+minimize.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+minimize.BorderSizePixel = 0
+minimize.Text = "-"
+minimize.TextColor3 = COLOR_TEXT
+minimize.Font = Enum.Font.GothamBold
+minimize.TextSize = 18
+minimize.Parent = topbar
+addCorner(minimize, 12)
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(34, 34)
+close.Position = UDim2.new(1, -39, 0.5, -17)
+close.BackgroundColor3 = COLOR_RED
+close.BorderSizePixel = 0
+close.Text = "X"
+close.TextColor3 = COLOR_TEXT
+close.Font = Enum.Font.GothamBold
+close.TextSize = 15
+close.Parent = topbar
+addCorner(close, 12)
+
+local tabs = Instance.new("Frame")
+tabs.Size = UDim2.new(1, -16, 0, 42)
+tabs.Position = UDim2.fromOffset(8, 65)
+tabs.BackgroundColor3 = COLOR_PANEL
+tabs.BorderSizePixel = 0
+tabs.Parent = frame
+addCorner(tabs, 14)
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.Padding = UDim.new(0, 5)
+tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+tabLayout.Parent = tabs
+
+local function makeTab(text)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(1 / 3, -7, 0, 34)
+	button.BackgroundColor3 = COLOR_PANEL_2
+	button.BorderSizePixel = 0
+	button.Text = text
+	button.TextColor3 = COLOR_TEXT
+	button.Font = Enum.Font.GothamBold
+	button.TextSize = 10
+	button.Parent = tabs
+	addCorner(button, 8)
+	return button
+end
+
+local generalTab = makeTab("GENERAL")
+local worldsTab = makeTab("WORLDS")
+local bossTab = makeTab("BOSS FIGHT")
+
+local content = Instance.new("Frame")
+content.Size = UDim2.new(1, -20, 1, -120)
+content.Position = UDim2.fromOffset(10, 114)
+content.BackgroundTransparency = 1
+content.Parent = frame
+
+local generalPage = Instance.new("Frame")
+generalPage.Size = UDim2.fromScale(1, 1)
+generalPage.BackgroundTransparency = 1
+generalPage.Parent = content
+
+local worldsPage = Instance.new("Frame")
+worldsPage.Size = UDim2.fromScale(1, 1)
+worldsPage.BackgroundTransparency = 1
+worldsPage.Visible = false
+worldsPage.Parent = content
+
+local bossPage = Instance.new("Frame")
+bossPage.Size = UDim2.fromScale(1, 1)
+bossPage.BackgroundTransparency = 1
+bossPage.Visible = false
+bossPage.Parent = content
+
+local function makePanel(parent, position, size)
+	local panel = Instance.new("Frame")
+	panel.Position = position
+	panel.Size = size
+	panel.BackgroundColor3 = COLOR_PANEL
+	panel.BorderSizePixel = 0
+	panel.Parent = parent
+	addCorner(panel, 16)
+	addStroke(panel, Color3.fromRGB(75, 82, 110), 1, 0.6)
+	return panel
+end
+
+local function makeButton(parent, text, position, size, color)
+	local button = Instance.new("TextButton")
+	button.Position = position
+	button.Size = size
+	button.BackgroundColor3 = color
+	button.BorderSizePixel = 0
+	button.Text = text
+	button.TextColor3 = COLOR_TEXT
+	button.Font = Enum.Font.GothamBold
+	button.TextSize = 12
+	button.Parent = parent
+	addCorner(button, 12)
+	return button
+end
+
+local farmPanel = makePanel(
+	generalPage,
+	UDim2.fromOffset(0, 0),
+	UDim2.new(1, 0, 0, 150)
+)
+
+local farmTitle = Instance.new("TextLabel")
+farmTitle.Size = UDim2.fromOffset(70, 24)
+farmTitle.Position = UDim2.fromOffset(12, 8)
+farmTitle.BackgroundTransparency = 1
+farmTitle.Text = "FARM XP"
+farmTitle.TextColor3 = COLOR_TEXT
+farmTitle.Font = Enum.Font.GothamBold
+farmTitle.TextSize = 14
+farmTitle.TextXAlignment = Enum.TextXAlignment.Left
+farmTitle.Parent = farmPanel
+
+local farmDot = Instance.new("Frame")
+farmDot.Size = UDim2.fromOffset(10, 10)
+farmDot.Position = UDim2.fromOffset(84, 15)
+farmDot.BackgroundColor3 = COLOR_RED
+farmDot.BorderSizePixel = 0
+farmDot.Parent = farmPanel
+addCorner(farmDot, 5)
+
+local farmState = Instance.new("TextLabel")
+farmState.Size = UDim2.fromOffset(70, 22)
+farmState.Position = UDim2.fromOffset(100, 9)
+farmState.BackgroundTransparency = 1
+farmState.Text = "Disabled"
+farmState.TextColor3 = COLOR_RED
+farmState.Font = Enum.Font.GothamBold
+farmState.TextSize = 13
+farmState.TextXAlignment = Enum.TextXAlignment.Left
+farmState.Parent = farmPanel
+
+local farmStart = makeButton(
+	farmPanel,
+	"START BEST TREADMILL",
+	UDim2.fromOffset(12, 42),
+	UDim2.new(1, -24, 0, 42),
+	COLOR_BLUE
+)
+
+local farmInfo = Instance.new("TextLabel")
+farmInfo.Size = UDim2.new(1, -24, 0, 34)
+farmInfo.Position = UDim2.fromOffset(12, 92)
+farmInfo.BackgroundTransparency = 1
+farmInfo.Text = "Speed Training"
+farmInfo.TextColor3 = COLOR_BLUE
+farmInfo.Font = Enum.Font.GothamBold
+farmInfo.TextSize = 10
+farmInfo.TextWrapped = true
+farmInfo.Parent = farmPanel
+
+local farmStop = makeButton(
+	farmPanel,
+	"STOP",
+	UDim2.new(0.5, -80, 0, 53),
+	UDim2.fromOffset(160, 38),
+	COLOR_RED
+)
+farmStop.Visible = false
+
+local scalePanel = makePanel(
+	generalPage,
+	UDim2.fromOffset(0, 160),
+	UDim2.new(1, 0, 0, 88)
+)
+
+local scaleTitle = Instance.new("TextLabel")
+scaleTitle.Size = UDim2.new(1, -24, 0, 24)
+scaleTitle.Position = UDim2.fromOffset(12, 8)
+scaleTitle.BackgroundTransparency = 1
+scaleTitle.Text = "HUB SIZE"
+scaleTitle.TextColor3 = COLOR_TEXT
+scaleTitle.Font = Enum.Font.GothamBold
+scaleTitle.TextSize = 14
+scaleTitle.TextXAlignment = Enum.TextXAlignment.Left
+scaleTitle.Parent = scalePanel
+
+local scaleMinus = makeButton(
+	scalePanel,
+	"-",
+	UDim2.fromOffset(12, 38),
+	UDim2.fromOffset(56, 36),
+	Color3.fromRGB(55, 85, 170)
+)
+scaleMinus.TextSize = 18
+
+local scaleLabel = Instance.new("TextLabel")
+scaleLabel.Size = UDim2.new(1, -152, 0, 36)
+scaleLabel.Position = UDim2.fromOffset(76, 38)
+scaleLabel.BackgroundColor3 = COLOR_PANEL_2
+scaleLabel.BorderSizePixel = 0
+scaleLabel.Text = "100%"
+scaleLabel.TextColor3 = COLOR_TEXT
+scaleLabel.Font = Enum.Font.GothamBold
+scaleLabel.TextSize = 12
+scaleLabel.Parent = scalePanel
+addCorner(scaleLabel, 12)
+
+local scalePlus = makeButton(
+	scalePanel,
+	"+",
+	UDim2.new(1, -68, 0, 38),
+	UDim2.fromOffset(56, 36),
+	Color3.fromRGB(55, 85, 170)
+)
+scalePlus.TextSize = 17
+
+local worldSelectPanel = makePanel(
+	worldsPage,
+	UDim2.fromOffset(0, 0),
+	UDim2.new(1, 0, 0, 100)
+)
+
+local selectTitle = Instance.new("TextLabel")
+selectTitle.Size = UDim2.new(1, -24, 0, 24)
+selectTitle.Position = UDim2.fromOffset(12, 8)
+selectTitle.BackgroundTransparency = 1
+selectTitle.Text = "SELECT WORLD"
+selectTitle.TextColor3 = COLOR_TEXT
+selectTitle.Font = Enum.Font.GothamBold
+selectTitle.TextSize = 14
+selectTitle.TextXAlignment = Enum.TextXAlignment.Left
+selectTitle.Parent = worldSelectPanel
+
+local world1Button = makeButton(
+	worldSelectPanel,
+	"WORLD 1",
+	UDim2.fromOffset(12, 38),
+	UDim2.new(1 / 3, -12, 0, 46),
+	COLOR_BLUE
+)
+
+local world2Button = makeButton(
+	worldSelectPanel,
+	"WORLD 2",
+	UDim2.new(1 / 3, 4, 0, 38),
+	UDim2.new(1 / 3, -12, 0, 46),
+	COLOR_PANEL_2
+)
+
+local world3Button = makeButton(
+	worldSelectPanel,
+	"WORLD 3\nCOMING SOON...",
+	UDim2.new(2 / 3, -4, 0, 38),
+	UDim2.new(1 / 3, -12, 0, 46),
+	COLOR_PANEL_2
+)
+world3Button.TextSize = 9
+world3Button.TextColor3 = COLOR_MUTED
+
+local stagePanel = makePanel(
+	worldsPage,
+	UDim2.fromOffset(0, 110),
+	UDim2.new(1, 0, 0, 110)
+)
+
+local stageTitle = Instance.new("TextLabel")
+stageTitle.Size = UDim2.new(1, -24, 0, 24)
+stageTitle.Position = UDim2.fromOffset(12, 9)
+stageTitle.BackgroundTransparency = 1
+stageTitle.Text = "END STAGE 14"
+stageTitle.TextColor3 = COLOR_TEXT
+stageTitle.Font = Enum.Font.GothamBold
+stageTitle.TextSize = 14
+stageTitle.TextXAlignment = Enum.TextXAlignment.Left
+stageTitle.Parent = stagePanel
+
+local manualWorldButton = makeButton(
+	stagePanel,
+	"MANUAL",
+	UDim2.fromOffset(12, 42),
+	UDim2.new(0.5, -17, 0, 44),
+	COLOR_GREEN
+)
+
+local autoWorldButton = makeButton(
+	stagePanel,
+	"AUTO: OFF",
+	UDim2.new(0.5, 5, 0, 42),
+	UDim2.new(0.5, -17, 0, 44),
+	COLOR_RED
+)
+
+local worldStatus = Instance.new("TextLabel")
+worldStatus.Size = UDim2.new(1, -12, 0, 28)
+worldStatus.Position = UDim2.fromOffset(6, 226)
+worldStatus.BackgroundTransparency = 1
+worldStatus.Text = "World 1 selected"
+worldStatus.TextColor3 = COLOR_MUTED
+worldStatus.Font = Enum.Font.GothamMedium
+worldStatus.TextSize = 10
+worldStatus.Parent = worldsPage
+
+local bossReadyPanel = makePanel(
+	bossPage,
+	UDim2.fromOffset(0, 0),
+	UDim2.new(1, 0, 0, 58)
+)
+
+local bossReadyLabel = Instance.new("TextLabel")
+bossReadyLabel.Size = UDim2.new(1, -20, 1, -16)
+bossReadyLabel.Position = UDim2.fromOffset(10, 8)
+bossReadyLabel.BackgroundColor3 = COLOR_PANEL_2
+bossReadyLabel.BorderSizePixel = 0
+bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
+bossReadyLabel.TextColor3 = COLOR_ORANGE
+bossReadyLabel.Font = Enum.Font.GothamBold
+bossReadyLabel.TextSize = 10
+bossReadyLabel.Parent = bossReadyPanel
+addCorner(bossReadyLabel, 12)
+
+local bossStatsPanel = makePanel(
+	bossPage,
+	UDim2.fromOffset(0, 68),
+	UDim2.new(1, 0, 0, 112)
+)
+
+local bossHealthLabel = Instance.new("TextLabel")
+bossHealthLabel.Size = UDim2.new(1, -20, 0, 34)
+bossHealthLabel.Position = UDim2.fromOffset(10, 10)
+bossHealthLabel.BackgroundColor3 = COLOR_PANEL_2
+bossHealthLabel.BorderSizePixel = 0
+bossHealthLabel.Text = "Boss Health • 0 / 0"
+bossHealthLabel.TextColor3 = COLOR_TEXT
+bossHealthLabel.Font = Enum.Font.GothamBold
+bossHealthLabel.TextSize = 11
+bossHealthLabel.Parent = bossStatsPanel
+addCorner(bossHealthLabel, 12)
+
+local myDamageLabel = Instance.new("TextLabel")
+myDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
+myDamageLabel.Position = UDim2.fromOffset(10, 54)
+myDamageLabel.BackgroundColor3 = COLOR_PANEL_2
+myDamageLabel.BorderSizePixel = 0
+myDamageLabel.Text = "My Dmg\n0"
+myDamageLabel.TextColor3 = COLOR_GREEN
+myDamageLabel.Font = Enum.Font.GothamBold
+myDamageLabel.TextSize = 11
+myDamageLabel.Parent = bossStatsPanel
+addCorner(myDamageLabel, 12)
+
+local othersDamageLabel = Instance.new("TextLabel")
+othersDamageLabel.Size = UDim2.new(0.5, -15, 0, 48)
+othersDamageLabel.Position = UDim2.new(0.5, 5, 0, 54)
+othersDamageLabel.BackgroundColor3 = COLOR_PANEL_2
+othersDamageLabel.BorderSizePixel = 0
+othersDamageLabel.Text = "Others Dmg\n0"
+othersDamageLabel.TextColor3 = COLOR_ORANGE
+othersDamageLabel.Font = Enum.Font.GothamBold
+othersDamageLabel.TextSize = 11
+othersDamageLabel.Parent = bossStatsPanel
+addCorner(othersDamageLabel, 12)
+
+local bossActionsPanel = makePanel(
+	bossPage,
+	UDim2.fromOffset(0, 190),
+	UDim2.new(1, 0, 0, 100)
+)
+
+local manualOrbButton = makeButton(
+	bossActionsPanel,
+	"MANUAL ORB",
+	UDim2.fromOffset(12, 12),
+	UDim2.new(0.5, -17, 0, 42),
+	COLOR_PURPLE
+)
+
+local autoOrbButton = makeButton(
+	bossActionsPanel,
+	"AUTO: OFF",
+	UDim2.new(0.5, 5, 0, 12),
+	UDim2.new(0.5, -17, 0, 42),
+	COLOR_RED
+)
+
+local bossStatus = Instance.new("TextLabel")
+bossStatus.Size = UDim2.new(1, -24, 0, 28)
+bossStatus.Position = UDim2.fromOffset(12, 61)
+bossStatus.BackgroundTransparency = 1
+bossStatus.Text = "Wait for the boss to be ready."
+bossStatus.TextColor3 = COLOR_ORANGE
+bossStatus.Font = Enum.Font.GothamMedium
+bossStatus.TextSize = 10
+bossStatus.Parent = bossActionsPanel
+
+local function refreshScaleUI()
+	hubScale.Scale = hubScaleValue
+	scaleLabel.Text = tostring(math.floor(hubScaleValue * 100 + 0.5)) .. "%"
+end
+
+local function setHubScale(newScale)
+	hubScaleValue = math.clamp(
+		math.floor((newScale / HUB_SCALE_STEP) + 0.5)
+			* HUB_SCALE_STEP,
+		HUB_SCALE_MIN,
+		HUB_SCALE_MAX
+	)
+
+	refreshScaleUI()
+end
+
+scaleMinus.MouseButton1Click:Connect(function()
+	setHubScale(hubScaleValue - HUB_SCALE_STEP)
 end)
-zxjv3nx4.CFrame = vj3houd
-return true
-end
-local function ad23eyngn()
-local fbkbqesix = vtlbg3aj:FindFirstChild("leaderstats")
-local ujxmruw = fbkbqesix and fbkbqesix:FindFirstChild("Rebirths")
-return ujxmruw and tonumber(ujxmruw.Value) or 0
-end
-local function cl0a9gqxz0(jdi4lc5te, or178i1nh)
-if not jdi4lc5te then
-return nil
-end
-for emlm03g7, w36qmah0kb in pairs(jdi4lc5te:GetAttributes()) do
-local rt4u6ng = qrss0w(emlm03g7)
-for ojtzmf, bag8ttgfz in ipairs(or178i1nh) do
-if rt4u6ng == bag8ttgfz or string.find(rt4u6ng, bag8ttgfz, 1, true) then
-local e4lp1crmo5 = tonumber(w36qmah0kb)
-if e4lp1crmo5 then
-return e4lp1crmo5
-end
-end
-end
-end
-for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
-local rt4u6ng = qrss0w(d0bjferqq.Name)
-for ojtzmf, bag8ttgfz in ipairs(or178i1nh) do
-if rt4u6ng == bag8ttgfz or string.find(rt4u6ng, bag8ttgfz, 1, true) then
-if d0bjferqq:IsA("IntValue") or d0bjferqq:IsA("NumberValue") then
-return tonumber(d0bjferqq.Value)
-elseif d0bjferqq:IsA("StringValue") then
-local e4lp1crmo5 = tonumber(d0bjferqq.Value)
-if e4lp1crmo5 then
-return e4lp1crmo5
-end
-end
-end
-end
-end
-return nil
-end
-local function ac0owfdwu(jdi4lc5te)
-local vqm70laia = {
-jdi4lc5te and jdi4lc5te.Name or "",
-}
-if not jdi4lc5te then
-return vqm70laia
-end
-for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
-if d0bjferqq:IsA("TextLabel") or d0bjferqq:IsA("TextButton") or d0bjferqq:IsA("TextBox") then
-table.insert(vqm70laia, d0bjferqq.Text)
-elseif d0bjferqq:IsA("StringValue") then
-table.insert(vqm70laia, d0bjferqq.Value)
-end
-end
-return vqm70laia
-end
-local function rhhlc8(jdi4lc5te, pe7c7nohi)
-return cl0a9gqxz0(jdi4lc5te, pe7c7nohi)
-end
-local function a7j52u21c(jdi4lc5te, vxd096gg9l)
-for ojtzmf, stgvoveybi in ipairs(ac0owfdwu(jdi4lc5te)) do
-for ojtzmf, r8144wxh in ipairs(vxd096gg9l) do
-local nevreluzb = string.match(string.lower(tostring(stgvoveybi)), r8144wxh)
-if nevreluzb then
-return tonumber(nevreluzb)
-end
-end
-end
-return nil
-end
-local function m03pbj1(jdi4lc5te)
-if not jdi4lc5te then
-return nil
-end
-if jdi4lc5te:IsA("BasePart") then
-return jdi4lc5te
-end
-if jdi4lc5te:IsA("Model") and jdi4lc5te.PrimaryPart and jdi4lc5te.PrimaryPart:IsA("BasePart") then
-return jdi4lc5te.PrimaryPart
-end
-for ojtzmf, g102cet in ipairs({
-"Belt",
-"Platform",
-"MainPart",
-"Base",
-"Hitbox",
-"Treadmill",
-}) do
-local quo3u1w3n = jdi4lc5te:FindFirstChild(g102cet, true)
-if quo3u1w3n and quo3u1w3n:IsA("BasePart") then
-return quo3u1w3n
-end
-end
-local ygdbakin = nil
-local bywkxo7j = 0
-for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
-if d0bjferqq:IsA("BasePart") then
-local b3jn2aatmm = d0bjferqq.Size.X * d0bjferqq.Size.Z
-if b3jn2aatmm > bywkxo7j then
-bywkxo7j = b3jn2aatmm
-ygdbakin = d0bjferqq
-end
-end
-end
-return ygdbakin
-end
-local function lcjcym(jdi4lc5te)
-if not jdi4lc5te then
-return false
-end
-local w0a4a5x = {
-"robux",
-"gamepass",
-"product",
-"developerproduct",
-"premium",
-"paid",
-"purchase",
-}
-local b766f453bs = string.lower(jdi4lc5te.Name)
-for emlm03g7, w36qmah0kb in pairs(jdi4lc5te:GetAttributes()) do
-local rt4u6ng = qrss0w(emlm03g7)
-local a9m6x1f4v = string.lower(tostring(w36qmah0kb))
-for ojtzmf, wk12nmq in ipairs(w0a4a5x) do
-if string.find(rt4u6ng, wk12nmq, 1, true) or string.find(a9m6x1f4v, wk12nmq, 1, true) then
-return true
-end
-end
-if (rt4u6ng == "isrobux" or rt4u6ng == "isgamepass" or rt4u6ng == "ispaid" or rt4u6ng == "requirespurchase") and w36qmah0kb == true then
-return true
-end
-end
-for ojtzmf, r0im213l8 in ipairs(ac0owfdwu(jdi4lc5te)) do
-b766f453bs = b766f453bs .. " " .. string.lower(r0im213l8)
-end
-for ojtzmf, wk12nmq in ipairs(w0a4a5x) do
-if string.find(b766f453bs, wk12nmq, 1, true) then
-return true
-end
-end
-if rhhlc8(jdi4lc5te, {
-"gamepassid",
-"productid",
-"developerproductid",
-"robuxprice",
-}) then
-return true
-end
-return false
-end
-local function p05n6oxb8(jdi4lc5te)
-local w20q5tmuh = rhhlc8(jdi4lc5te, {
-"rebirthsrequired",
-"requiredrebirths",
-"rebirthrequirement",
-"rebirths",
-"rebirth",
-}) or a7j52u21c(jdi4lc5te, {
-"(%d+)%s*rebirth",
-"rebirth[%a%s:_%-]*(%d+)",
-}) or 0
-local w02y4cok6 = rhhlc8(jdi4lc5te, {
-"speedmultiplier",
-"treadmillmultiplier",
-"multiplier",
-"boost",
-}) or a7j52u21c(jdi4lc5te, {
-"[xX]%s*(%d+%.?%d*)",
-"(%d+%.?%d*)%s*[xX]",
-}) or tonumber(string.match(string.lower(jdi4lc5te.Name), "[xX]%s*(%d+%.?%d*)")) or tonumber(string.match(string.lower(jdi4lc5te.Name), "(%d+%.?%d*)%s*[xX]")) or 1
-return {
-Instance = jdi4lc5te,
-Part = m03pbj1(jdi4lc5te),
-Requirement = math.max(0, tonumber(w20q5tmuh) or 0),
-Multiplier = math.max(1, tonumber(w02y4cok6) or 1),
-Paid = lcjcym(jdi4lc5te),
-}
-end
-local function q8aqbv8()
-local c6cm6se = workspace:FindFirstChild("Treadmills") or workspace:FindFirstChild("Treadmills", true)
-if not c6cm6se then
-return nil
-end
-local ujxmruw = ad23eyngn()
-local xqeqbryg = {
-}
-local wky5za8h = {
-[5] = true,
-[27] = true,
-[100] = true,
-}
-local function odirwhem(jdi4lc5te)
-if not (jdi4lc5te:IsA("Model") or jdi4lc5te:IsA("BasePart")) then
-return
-end
-local e63e1ef = p05n6oxb8(jdi4lc5te)
-if not e63e1ef.Part then
-return
-end
-local fhgu47 = {
-[1] = 0,
-[3] = 2,
-[9] = 5,
-[50] = 15,
-}
-if wky5za8h[e63e1ef.Multiplier] then
-e63e1ef.Paid = true
-end
-if fhgu47[e63e1ef.Multiplier] ~= nil then
-e63e1ef.Requirement = fhgu47[e63e1ef.Multiplier]
-end
-local bmg4fi3h = string.lower(jdi4lc5te.Name)
-if string.find(bmg4fi3h, "robux", 1, true) or string.find(bmg4fi3h, "gamepass", 1, true) or string.find(bmg4fi3h, "paid", 1, true) then
-e63e1ef.Paid = true
-end
-if not e63e1ef.Paid then
-table.insert(xqeqbryg, e63e1ef)
-end
-end
-for ojtzmf, u9eo1ia in ipairs(c6cm6se:GetChildren()) do
-odirwhem(u9eo1ia)
-end
-if #xqeqbryg == 0 then
-for ojtzmf, d0bjferqq in ipairs(c6cm6se:GetDescendants()) do
-if d0bjferqq:IsA("Model") then
-odirwhem(d0bjferqq)
-end
-end
-end
-local hz2nvsieff = nil
-for ojtzmf, e63e1ef in ipairs(xqeqbryg) do
-if e63e1ef.Requirement <= ujxmruw then
-if not hz2nvsieff or e63e1ef.Requirement > hz2nvsieff.Requirement or (e63e1ef.Requirement == hz2nvsieff.Requirement and e63e1ef.Multiplier > hz2nvsieff.Multiplier) then
-hz2nvsieff = e63e1ef
-end
-end
-end
-if ujxmruw <= 0 then
-local j0dqtvdm7 = nil
-for ojtzmf, e63e1ef in ipairs(xqeqbryg) do
-if e63e1ef.Requirement == 0 and e63e1ef.Multiplier == 1 then
-j0dqtvdm7 = e63e1ef
-break
-end
-end
-if j0dqtvdm7 then
-hz2nvsieff = j0dqtvdm7
-end
-end
-return hz2nvsieff
-end
-local function tvk79e1f2(e63e1ef)
-if not e63e1ef or not e63e1ef.Part or not e63e1ef.Part:IsDescendantOf(workspace) then
-return nil
-end
-local zxjv3nx4 = pxd2wvxl9()
-local adxacrbbww = ssrv6rg4()
-if not zxjv3nx4 or not adxacrbbww then
-return nil
-end
-local quo3u1w3n = e63e1ef.Part
-local ifqi0wmqyd = quo3u1w3n.Position.Y + (quo3u1w3n.Size.Y / 2) + adxacrbbww.HipHeight + (zxjv3nx4.Size.Y / 2) + 0.1
-local spufw39 = Vector3.new(quo3u1w3n.Position.X, ifqi0wmqyd, quo3u1w3n.Position.Z)
-local b6o7s1 = quo3u1w3n.CFrame.LookVector
-return CFrame.lookAt(spufw39, spufw39 + b6o7s1)
-end
-local function e7g4jdxt6()
-if ovsnqzs then
-pcall(function()
-ovsnqzs:Stop(0.15)
-ovsnqzs:Destroy()
+
+scalePlus.MouseButton1Click:Connect(function()
+	setHubScale(hubScaleValue + HUB_SCALE_STEP)
 end)
-ovsnqzs = nil
-end
-end
-local function mm5ff6()
-e7g4jdxt6()
-local adxacrbbww = ssrv6rg4()
-if not adxacrbbww then
-return false
-end
-local rpjozcqvj = adxacrbbww:FindFirstChildOfClass("Animator")
-if not rpjozcqvj then
-rpjozcqvj = Instance.new("Animator")
-rpjozcqvj.Parent = adxacrbbww
-end
-local u03r3xj = Instance.new("Animation")
-u03r3xj.AnimationId = adxacrbbww.RigType == Enum.HumanoidRigType.R6 and "rbxassetid://180426354" or "rbxassetid://507777826"
-local n29sbd41, oxdye5e = pcall(function()
-return rpjozcqvj:LoadAnimation(u03r3xj)
+
+scaleMinus.MouseEnter:Connect(function()
+	scaleMinus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
 end)
-u03r3xj:Destroy()
-if not n29sbd41 or not oxdye5e then
-return false
-end
-oxdye5e.Priority = Enum.AnimationPriority.Action
-oxdye5e.Looped = true
-oxdye5e:Play(0.15, 1, mbsojr0d0)
-oxdye5e:AdjustSpeed(mbsojr0d0)
-ovsnqzs = oxdye5e
-return true
-end
-local function b0jypl()
-kfnljk = false
-h45lrh5 = nil
-nbixdlqyf = nil
-if mjz5pqt8 then
-mjz5pqt8:Disconnect()
-mjz5pqt8 = nil
-end
-e7g4jdxt6()
-local adxacrbbww = vtlbg3aj.Character and vtlbg3aj.Character:FindFirstChildOfClass("Humanoid")
-if adxacrbbww then
-adxacrbbww.AutoRotate = true
-end
-end
-local function ufhco9jnp()
-local hz2nvsieff = q8aqbv8()
-if not hz2nvsieff then
-return false
-end
-local d9qi8xi12e = tvk79e1f2(hz2nvsieff)
-if not d9qi8xi12e then
-return false
-end
-b0jypl()
-local adxacrbbww = ssrv6rg4()
-if not adxacrbbww then
-return false
-end
-kfnljk = true
-h45lrh5 = hz2nvsieff
-nbixdlqyf = d9qi8xi12e
-adxacrbbww.AutoRotate = false
-oxl5t4786(d9qi8xi12e)
-mm5ff6()
-mjz5pqt8 = k5perfc177.Heartbeat:Connect(function()
-if not kfnljk or not nbixdlqyf then
-return
-end
-local zxjv3nx4 = pxd2wvxl9()
-local bt8dp116w = ssrv6rg4()
-if not zxjv3nx4 or not bt8dp116w or bt8dp116w.Health <= 0 then
-return
-end
-if (zxjv3nx4.Position - nbixdlqyf.Position).Magnitude > wrh8urstq then
-zxjv3nx4.CFrame = nbixdlqyf
-end
-pcall(function()
-zxjv3nx4.AssemblyLinearVelocity = Vector3.zero
-zxjv3nx4.AssemblyAngularVelocity = Vector3.zero
+
+scaleMinus.MouseLeave:Connect(function()
+	scaleMinus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
 end)
+
+scalePlus.MouseEnter:Connect(function()
+	scalePlus.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
 end)
-return true
-end
-local function smf6pwx()
-local zxjv3nx4 = pxd2wvxl9()
-local spufw39 = e95zu6a6he[selectedWorld]
-if not zxjv3nx4 or not spufw39 then
-return false
-end
-return oxl5t4786(CFrame.new(spufw39) * zxjv3nx4.CFrame.Rotation)
-end
-local function gi58nu(r65ol5u)
-return string.find(qrss0w(r65ol5u), "damageorb", 1, true) ~= nil
-end
-local function mb7105vbx(jdi4lc5te)
-if jdi4lc5te:IsA("BasePart") then
-return jdi4lc5te
-elseif jdi4lc5te:IsA("Model") then
-if jdi4lc5te.PrimaryPart then
-return jdi4lc5te.PrimaryPart
-end
-return jdi4lc5te:FindFirstChildWhichIsA("BasePart", true)
-end
-return jdi4lc5te:FindFirstChildWhichIsA("BasePart", true)
-end
-local function kkabdnozq()
-local t0eel44 = {
-}
-local tjg9z9h3x = {
-}
-for ojtzmf, d0bjferqq in ipairs(workspace:GetDescendants()) do
-if (d0bjferqq:IsA("Model") or d0bjferqq:IsA("BasePart")) and gi58nu(d0bjferqq.Name) then
-local quo3u1w3n = mb7105vbx(d0bjferqq)
-if quo3u1w3n and not tjg9z9h3x[part] then
-tjg9z9h3x[part] = true
-table.insert(t0eel44, {
-Instance = d0bjferqq,
-Part = quo3u1w3n,
-})
-end
-end
-end
-return t0eel44
-end
-local function f0gsrz3kqy()
-local zxjv3nx4 = pxd2wvxl9()
-if not zxjv3nx4 then
-return false
-end
-local v8zgw3f3 = nil
-local j2i684 = math.huge
-for ojtzmf, mi7jpn in ipairs(kkabdnozq()) do
-local lz6cmocg = (zxjv3nx4.Position - mi7jpn.Part.Position).Magnitude
-if lz6cmocg < j2i684 then
-j2i684 = lz6cmocg
-v8zgw3f3 = mi7jpn
-end
-end
-if not v8zgw3f3 then
-return false
-end
-local n29sbd41 = oxl5t4786(CFrame.new(v8zgw3f3.Part.Position) * zxjv3nx4.CFrame.Rotation)
-if n29sbd41 then
-t6yfb88 = os.clock()
-end
-return n29sbd41
-end
-local function w9tsu6()
-local l9h7f68ds = kkabdnozq()
-if #l9h7f68ds == 0 then
-uucuzzqg = 0
-return false
-end
-uucuzzqg = uucuzzqg + 1
-if uucuzzqg > #l9h7f68ds then
-uucuzzqg = 1
-end
-local zxjv3nx4 = pxd2wvxl9()
-if not zxjv3nx4 then
-return false
-end
-local n29sbd41 = oxl5t4786(CFrame.new(l9h7f68ds[bossOrbIndex].Part.Position) * zxjv3nx4.CFrame.Rotation)
-if n29sbd41 then
-t6yfb88 = os.clock()
-end
-return n29sbd41
-end
-local function bzcrwuoim()
-local cykgwt = bt8f4nxu:FindFirstChild("Modules")
-local au2nwa = cykgwt and cykgwt:FindFirstChild("Shared")
-local r91p3ba = au2nwa and au2nwa:FindFirstChild("RemoteEventService")
-if not r91p3ba then
-return nil
-end
-local q0z83m4 = r91p3ba:FindFirstChild("BossFightRemoteEvent")
-if q0z83m4 and q0z83m4:IsA("RemoteEvent") then
-return q0z83m4
-end
-local n29sbd41, afmwiayo = pcall(require, r91p3ba)
-if n29sbd41 and type(afmwiayo) == "table" and type(afmwiayo.Get) == "function" then
-local xpomb998s, dwd4cn = pcall(afmwiayo.Get, "BossFight")
-if not xpomb998s then
-xpomb998s, dwd4cn = pcall(afmwiayo.Get, afmwiayo, "BossFight")
-end
-if xpomb998s and dwd4cn and dwd4cn:IsA("RemoteEvent") then
-return dwd4cn
-end
-end
-return nil
-end
-local w3ydjgx07e = nil
-local function awg2pzml8d()
-if w3ydjgx07e then
-w3ydjgx07e:Disconnect()
-w3ydjgx07e = nil
-end
-local dwd4cn = bzcrwuoim()
-if not dwd4cn then
-return
-end
-w3ydjgx07e = dwd4cn.OnClientEvent:Connect(function(iulkchsg, ...)
-if iulkchsg == "CutsceneEnd" or iulkchsg == "MiniBossFightStart" then
-local ze1g8d8 = tonumber((...)) or 0
-ozeejed = true
-l701uc84p3 = true
-mqdga5a = ze1g8d8
-xgxvwm = ze1g8d8
-ilk6pdeu = ze1g8d8
-tssvd4jx = 0
-wn4d2u = 0
-t6yfb88 = -math.huge
-elseif iulkchsg == "UpdateHealth" then
-local ss3o9r, ze1g8d8 = ...
-ss3o9r = tonumber(ss3o9r) or 0
-ze1g8d8 = tonumber(ze1g8d8) or mqdga5a
-if ilk6pdeu and ss3o9r < ilk6pdeu then
-local c51tfy = ilk6pdeu - ss3o9r
-if os.clock() - t6yfb88 <= z28qpkw7 then
-tssvd4jx = tssvd4jx + c51tfy
-else
-wn4d2u = wn4d2u + c51tfy
-end
-end
-xgxvwm = ss3o9r
-mqdga5a = ze1g8d8
-ilk6pdeu = ss3o9r
-ozeejed = ss3o9r > 0
-l701uc84p3 = true
-elseif iulkchsg == "BossFightEnd" or iulkchsg == "DeathCutscene" or iulkchsg == "GateCloseCutscene" or iulkchsg == "DoorCutsceneStart" or iulkchsg == "StartCutscene" then
-ozeejed = false
-l701uc84p3 = true
-end
+
+scalePlus.MouseLeave:Connect(function()
+	scalePlus.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
 end)
+
+local function getCurrentPage()
+	if currentTab == "General" then
+		return generalPage
+	elseif currentTab == "Worlds" then
+		return worldsPage
+	else
+		return bossPage
+	end
 end
-local function o6d3a92()
-if l701uc84p3 then
-return ozeejed
+
+local function getVisibleContentBottom(page)
+	local bottom = 0
+
+	for _, child in ipairs(page:GetChildren()) do
+		if child:IsA("GuiObject") and child.Visible then
+			local y = child.Position.Y.Offset
+			local height = child.Size.Y.Offset
+			bottom = math.max(bottom, y + height)
+		end
+	end
+
+	return bottom
 end
-return #kkabdnozq() > 0
+
+local function updateWindowHeight()
+	if minimized or closed then
+		return
+	end
+
+	local page = getCurrentPage()
+	local contentBottom = getVisibleContentBottom(page)
+
+	local desiredHeight =
+		TOP_CONTENT_OFFSET
+		+ contentBottom
+		+ BOTTOM_PADDING
+
+	desiredHeight = math.clamp(
+		desiredHeight,
+		MIN_WINDOW_HEIGHT,
+		MAX_WINDOW_HEIGHT
+	)
+
+	frame.Size = UDim2.fromOffset(WINDOW_WIDTH, desiredHeight)
+	content.Size = UDim2.new(
+		1,
+		-20,
+		0,
+		desiredHeight - TOP_CONTENT_OFFSET - 6
+	)
 end
-local ctphs2 = Instance.new("ScreenGui")
-ctphs2.Name = "AnonymousHubStableBase"
-ctphs2.ResetOnSpawn = false
-ctphs2.Parent = ly62bzs
-local ewbw3s = Instance.new("Frame")
-ewbw3s.Size = UDim2.fromOffset(pudlm3my, 390)
-ewbw3s.Position = UDim2.new(0.5, -195, 0.5, -195)
-ewbw3s.BackgroundColor3 = wavcgu
-ewbw3s.BorderSizePixel = 0
-ewbw3s.Active = true
-ewbw3s.Draggable = true
-ewbw3s.ClipsDescendants = true
-ewbw3s.Parent = ctphs2
-ro8d8aht8(ewbw3s, 24)
-i1l1vj(ewbw3s, Color3.fromRGB(70, 80, 110), 1, 0.35)
-local g8raobkpk = Instance.new("UIScale")
-g8raobkpk.Scale = cwo67x1
-g8raobkpk.Parent = ewbw3s
-local m3q5hfyfp5 = Instance.new("Frame")
-m3q5hfyfp5.Size = UDim2.new(1, 0, 0, 58)
-m3q5hfyfp5.BackgroundColor3 = jeqe4c
-m3q5hfyfp5.BorderSizePixel = 0
-m3q5hfyfp5.Parent = ewbw3s
-ro8d8aht8(m3q5hfyfp5, 24)
-local dyu2wphb = Instance.new("Frame")
-dyu2wphb.Size = UDim2.new(1, 0, 0, 18)
-dyu2wphb.Position = UDim2.new(0, 0, 1, -18)
-dyu2wphb.BackgroundColor3 = jeqe4c
-dyu2wphb.BorderSizePixel = 0
-dyu2wphb.Parent = m3q5hfyfp5
-local dx1gvvume = Instance.new("TextLabel")
-dx1gvvume.Size = UDim2.new(1, -100, 1, 0)
-dx1gvvume.Position = UDim2.fromOffset(16, 0)
-dx1gvvume.BackgroundTransparency = 1
-dx1gvvume.Text = "ANONYMOUS HUB"
-dx1gvvume.TextColor3 = mq8facyxv
-dx1gvvume.Font = Enum.Font.GothamBold
-dx1gvvume.TextSize = 20
-dx1gvvume.TextXAlignment = Enum.TextXAlignment.Left
-dx1gvvume.Parent = m3q5hfyfp5
-local gla9x3 = Instance.new("TextButton")
-gla9x3.Size = UDim2.fromOffset(34, 34)
-gla9x3.Position = UDim2.new(1, -76, 0.5, -17)
-gla9x3.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
-gla9x3.BorderSizePixel = 0
-gla9x3.Text = "-"
-gla9x3.TextColor3 = mq8facyxv
-gla9x3.Font = Enum.Font.GothamBold
-gla9x3.TextSize = 18
-gla9x3.Parent = m3q5hfyfp5
-ro8d8aht8(gla9x3, 12)
-local srdemmvw2t = Instance.new("TextButton")
-srdemmvw2t.Size = UDim2.fromOffset(34, 34)
-srdemmvw2t.Position = UDim2.new(1, -39, 0.5, -17)
-srdemmvw2t.BackgroundColor3 = yagg8k
-srdemmvw2t.BorderSizePixel = 0
-srdemmvw2t.Text = "X"
-srdemmvw2t.TextColor3 = mq8facyxv
-srdemmvw2t.Font = Enum.Font.GothamBold
-srdemmvw2t.TextSize = 15
-srdemmvw2t.Parent = m3q5hfyfp5
-ro8d8aht8(srdemmvw2t, 12)
-local hefrta = Instance.new("Frame")
-hefrta.Size = UDim2.new(1, -16, 0, 42)
-hefrta.Position = UDim2.fromOffset(8, 65)
-hefrta.BackgroundColor3 = s9bcxvy
-hefrta.BorderSizePixel = 0
-hefrta.Parent = ewbw3s
-ro8d8aht8(hefrta, 14)
-local yocys5h6ot = Instance.new("UIListLayout")
-yocys5h6ot.FillDirection = Enum.FillDirection.Horizontal
-yocys5h6ot.Padding = UDim.new(0, 5)
-yocys5h6ot.HorizontalAlignment = Enum.HorizontalAlignment.Center
-yocys5h6ot.VerticalAlignment = Enum.VerticalAlignment.Center
-yocys5h6ot.Parent = hefrta
-local function wmmsl5cr(vc7kor)
-local n8boommid = Instance.new("TextButton")
-n8boommid.Size = UDim2.new(1 / 3, -7, 0, 34)
-n8boommid.BackgroundColor3 = w8g9mpndij
-n8boommid.BorderSizePixel = 0
-n8boommid.Text = vc7kor
-n8boommid.TextColor3 = mq8facyxv
-n8boommid.Font = Enum.Font.GothamBold
-n8boommid.TextSize = 10
-n8boommid.Parent = hefrta
-ro8d8aht8(n8boommid, 8)
-return n8boommid
+
+local function updateTabs()
+	generalPage.Visible = currentTab == "General"
+	worldsPage.Visible = currentTab == "Worlds"
+	bossPage.Visible = currentTab == "Boss"
+
+	generalTab.BackgroundColor3 =
+		currentTab == "General" and COLOR_BLUE or COLOR_PANEL_2
+
+	worldsTab.BackgroundColor3 =
+		currentTab == "Worlds" and COLOR_BLUE or COLOR_PANEL_2
+
+	bossTab.BackgroundColor3 =
+		currentTab == "Boss" and COLOR_BLUE or COLOR_PANEL_2
+
+	updateWindowHeight()
 end
-local qpcbih = wmmsl5cr("GENERAL")
-local fc34q9jt = wmmsl5cr("WORLDS")
-local tk8x0gb5y = wmmsl5cr("BOSS FIGHT")
-local mvop29 = Instance.new("Frame")
-mvop29.Size = UDim2.new(1, -20, 1, -120)
-mvop29.Position = UDim2.fromOffset(10, 114)
-mvop29.BackgroundTransparency = 1
-mvop29.Parent = ewbw3s
-local udwzcu7 = Instance.new("Frame")
-udwzcu7.Size = UDim2.fromScale(1, 1)
-udwzcu7.BackgroundTransparency = 1
-udwzcu7.Parent = mvop29
-local g961i438 = Instance.new("Frame")
-g961i438.Size = UDim2.fromScale(1, 1)
-g961i438.BackgroundTransparency = 1
-g961i438.Visible = false
-g961i438.Parent = mvop29
-local be44fjj9nl = Instance.new("Frame")
-be44fjj9nl.Size = UDim2.fromScale(1, 1)
-be44fjj9nl.BackgroundTransparency = 1
-be44fjj9nl.Visible = false
-be44fjj9nl.Parent = mvop29
-local function hoybgdm(fqdzrwj, spufw39, uncm5g9fp)
-local epsgsrbxus = Instance.new("Frame")
-epsgsrbxus.Position = spufw39
-epsgsrbxus.Size = uncm5g9fp
-epsgsrbxus.BackgroundColor3 = s9bcxvy
-epsgsrbxus.BorderSizePixel = 0
-epsgsrbxus.Parent = fqdzrwj
-ro8d8aht8(epsgsrbxus, 16)
-i1l1vj(epsgsrbxus, Color3.fromRGB(75, 82, 110), 1, 0.6)
-return epsgsrbxus
+
+local function refreshFarmUI()
+	local best = farmSelected or getBestTreadmill()
+
+	if best then
+		farmInfo.Text =
+			"Speed Training (Requires "
+			.. formatNumber(best.Requirement)
+			.. " Rebirth(s) • x"
+			.. formatNumber(best.Multiplier)
+			.. ")"
+	else
+		farmInfo.Text = "Speed Training (No eligible treadmill)"
+	end
+
+	if farmActive then
+		farmDot.BackgroundColor3 = COLOR_GREEN
+		farmState.Text = "Active"
+		farmState.TextColor3 = COLOR_GREEN
+		farmStart.Visible = false
+		farmInfo.Visible = false
+		farmStop.Visible = true
+	else
+		farmDot.BackgroundColor3 = COLOR_RED
+		farmState.Text = "Disabled"
+		farmState.TextColor3 = COLOR_RED
+		farmStart.Visible = true
+		farmInfo.Visible = true
+		farmStop.Visible = false
+	end
+
+	updateWindowHeight()
 end
-local function dtvqvrkvg3(fqdzrwj, vc7kor, spufw39, uncm5g9fp, erxmivf4jd)
-local n8boommid = Instance.new("TextButton")
-n8boommid.Position = spufw39
-n8boommid.Size = uncm5g9fp
-n8boommid.BackgroundColor3 = erxmivf4jd
-n8boommid.BorderSizePixel = 0
-n8boommid.Text = vc7kor
-n8boommid.TextColor3 = mq8facyxv
-n8boommid.Font = Enum.Font.GothamBold
-n8boommid.TextSize = 12
-n8boommid.Parent = fqdzrwj
-ro8d8aht8(n8boommid, 12)
-return n8boommid
+
+local function refreshWorldUI()
+	world1Button.BackgroundColor3 =
+		selectedWorld == 1 and COLOR_BLUE or COLOR_PANEL_2
+
+	world2Button.BackgroundColor3 =
+		selectedWorld == 2 and COLOR_BLUE or COLOR_PANEL_2
+
+	if worldAuto then
+		autoWorldButton.Text = "AUTO: ON"
+		autoWorldButton.BackgroundColor3 = COLOR_GREEN
+		worldStatus.Text =
+			"World "
+			.. tostring(selectedWorld)
+			.. " selected • Auto active"
+		worldStatus.TextColor3 = COLOR_GREEN
+	else
+		autoWorldButton.Text = "AUTO: OFF"
+		autoWorldButton.BackgroundColor3 = COLOR_RED
+		worldStatus.Text =
+			"World "
+			.. tostring(selectedWorld)
+			.. " selected"
+		worldStatus.TextColor3 = COLOR_MUTED
+	end
+
+	updateWindowHeight()
 end
-local rm9lh95nil = hoybgdm(udwzcu7, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 150))
-local r16wou = Instance.new("TextLabel")
-r16wou.Size = UDim2.fromOffset(70, 24)
-r16wou.Position = UDim2.fromOffset(12, 8)
-r16wou.BackgroundTransparency = 1
-r16wou.Text = "FARM XP"
-r16wou.TextColor3 = mq8facyxv
-r16wou.Font = Enum.Font.GothamBold
-r16wou.TextSize = 14
-r16wou.TextXAlignment = Enum.TextXAlignment.Left
-r16wou.Parent = rm9lh95nil
-local d2g2jn58k = Instance.new("Frame")
-d2g2jn58k.Size = UDim2.fromOffset(10, 10)
-d2g2jn58k.Position = UDim2.fromOffset(84, 15)
-d2g2jn58k.BackgroundColor3 = yagg8k
-d2g2jn58k.BorderSizePixel = 0
-d2g2jn58k.Parent = rm9lh95nil
-ro8d8aht8(d2g2jn58k, 5)
-local oo9jh1 = Instance.new("TextLabel")
-oo9jh1.Size = UDim2.fromOffset(70, 22)
-oo9jh1.Position = UDim2.fromOffset(100, 9)
-oo9jh1.BackgroundTransparency = 1
-oo9jh1.Text = "Disabled"
-oo9jh1.TextColor3 = yagg8k
-oo9jh1.Font = Enum.Font.GothamBold
-oo9jh1.TextSize = 13
-oo9jh1.TextXAlignment = Enum.TextXAlignment.Left
-oo9jh1.Parent = rm9lh95nil
-local kou1mur = dtvqvrkvg3(rm9lh95nil, "START BEST TREADMILL", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 42), jeqe4c)
-local es9m299n = Instance.new("TextLabel")
-es9m299n.Size = UDim2.new(1, -24, 0, 34)
-es9m299n.Position = UDim2.fromOffset(12, 92)
-es9m299n.BackgroundTransparency = 1
-es9m299n.Text = "Speed Training"
-es9m299n.TextColor3 = jeqe4c
-es9m299n.Font = Enum.Font.GothamBold
-es9m299n.TextSize = 10
-es9m299n.TextWrapped = true
-es9m299n.Parent = rm9lh95nil
-local t99a0dh = dtvqvrkvg3(rm9lh95nil, "STOP", UDim2.new(0.5, -80, 0, 53), UDim2.fromOffset(160, 38), yagg8k)
-t99a0dh.Visible = false
-local j6szem9g9 = hoybgdm(udwzcu7, UDim2.fromOffset(0, 160), UDim2.new(1, 0, 0, 88))
-local rxnkp794x = Instance.new("TextLabel")
-rxnkp794x.Size = UDim2.new(1, -24, 0, 24)
-rxnkp794x.Position = UDim2.fromOffset(12, 8)
-rxnkp794x.BackgroundTransparency = 1
-rxnkp794x.Text = "HUB SIZE"
-rxnkp794x.TextColor3 = mq8facyxv
-rxnkp794x.Font = Enum.Font.GothamBold
-rxnkp794x.TextSize = 14
-rxnkp794x.TextXAlignment = Enum.TextXAlignment.Left
-rxnkp794x.Parent = j6szem9g9
-local pshd63p235 = dtvqvrkvg3(j6szem9g9, "-", UDim2.fromOffset(12, 38), UDim2.fromOffset(56, 36), Color3.fromRGB(55, 85, 170))
-pshd63p235.TextSize = 18
-local z6k4lu = Instance.new("TextLabel")
-z6k4lu.Size = UDim2.new(1, -152, 0, 36)
-z6k4lu.Position = UDim2.fromOffset(76, 38)
-z6k4lu.BackgroundColor3 = w8g9mpndij
-z6k4lu.BorderSizePixel = 0
-z6k4lu.Text = "100%"
-z6k4lu.TextColor3 = mq8facyxv
-z6k4lu.Font = Enum.Font.GothamBold
-z6k4lu.TextSize = 12
-z6k4lu.Parent = j6szem9g9
-ro8d8aht8(z6k4lu, 12)
-local oqe4cg = dtvqvrkvg3(j6szem9g9, "+", UDim2.new(1, -68, 0, 38), UDim2.fromOffset(56, 36), Color3.fromRGB(55, 85, 170))
-oqe4cg.TextSize = 17
-local mbwdolk = hoybgdm(g961i438, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 100))
-local bx2svbeli = Instance.new("TextLabel")
-bx2svbeli.Size = UDim2.new(1, -24, 0, 24)
-bx2svbeli.Position = UDim2.fromOffset(12, 8)
-bx2svbeli.BackgroundTransparency = 1
-bx2svbeli.Text = "SELECT WORLD"
-bx2svbeli.TextColor3 = mq8facyxv
-bx2svbeli.Font = Enum.Font.GothamBold
-bx2svbeli.TextSize = 14
-bx2svbeli.TextXAlignment = Enum.TextXAlignment.Left
-bx2svbeli.Parent = mbwdolk
-local ge6s45x = dtvqvrkvg3(mbwdolk, "WORLD 1", UDim2.fromOffset(12, 38), UDim2.new(1 / 3, -12, 0, 46), jeqe4c)
-local xr72k8 = dtvqvrkvg3(mbwdolk, "WORLD 2", UDim2.new(1 / 3, 4, 0, 38), UDim2.new(1 / 3, -12, 0, 46), w8g9mpndij)
-local thppdx8xc = dtvqvrkvg3(mbwdolk, "WORLD 3\nCOMING SOON...", UDim2.new(2 / 3, -4, 0, 38), UDim2.new(1 / 3, -12, 0, 46), w8g9mpndij)
-thppdx8xc.TextSize = 9
-thppdx8xc.TextColor3 = vsdsfwg9bz
-local mnjl3hi = hoybgdm(g961i438, UDim2.fromOffset(0, 110), UDim2.new(1, 0, 0, 110))
-local c5z60g06j = Instance.new("TextLabel")
-c5z60g06j.Size = UDim2.new(1, -24, 0, 24)
-c5z60g06j.Position = UDim2.fromOffset(12, 9)
-c5z60g06j.BackgroundTransparency = 1
-c5z60g06j.Text = "END STAGE 14"
-c5z60g06j.TextColor3 = mq8facyxv
-c5z60g06j.Font = Enum.Font.GothamBold
-c5z60g06j.TextSize = 14
-c5z60g06j.TextXAlignment = Enum.TextXAlignment.Left
-c5z60g06j.Parent = mnjl3hi
-local hedqzs70f = dtvqvrkvg3(mnjl3hi, "MANUAL", UDim2.fromOffset(12, 42), UDim2.new(0.5, -17, 0, 44), f0zftoic0)
-local vy05dugng = dtvqvrkvg3(mnjl3hi, "AUTO: OFF", UDim2.new(0.5, 5, 0, 42), UDim2.new(0.5, -17, 0, 44), yagg8k)
-local caw5vj2 = Instance.new("TextLabel")
-caw5vj2.Size = UDim2.new(1, -12, 0, 28)
-caw5vj2.Position = UDim2.fromOffset(6, 226)
-caw5vj2.BackgroundTransparency = 1
-caw5vj2.Text = "World 1 selected"
-caw5vj2.TextColor3 = vsdsfwg9bz
-caw5vj2.Font = Enum.Font.GothamMedium
-caw5vj2.TextSize = 10
-caw5vj2.Parent = g961i438
-local c7su1b6 = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 58))
-local ik7kmhvef = Instance.new("TextLabel")
-ik7kmhvef.Size = UDim2.new(1, -20, 1, -16)
-ik7kmhvef.Position = UDim2.fromOffset(10, 8)
-ik7kmhvef.BackgroundColor3 = w8g9mpndij
-ik7kmhvef.BorderSizePixel = 0
-ik7kmhvef.Text = "WAIT FOR THE BOSS TO BE READY"
-ik7kmhvef.TextColor3 = m2lp5hajar
-ik7kmhvef.Font = Enum.Font.GothamBold
-ik7kmhvef.TextSize = 10
-ik7kmhvef.Parent = c7su1b6
-ro8d8aht8(ik7kmhvef, 12)
-local ivzbjw7kml = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 68), UDim2.new(1, 0, 0, 112))
-local avu3i6ba79 = Instance.new("TextLabel")
-avu3i6ba79.Size = UDim2.new(1, -20, 0, 34)
-avu3i6ba79.Position = UDim2.fromOffset(10, 10)
-avu3i6ba79.BackgroundColor3 = w8g9mpndij
-avu3i6ba79.BorderSizePixel = 0
-avu3i6ba79.Text = "Boss Health • 0 / 0"
-avu3i6ba79.TextColor3 = mq8facyxv
-avu3i6ba79.Font = Enum.Font.GothamBold
-avu3i6ba79.TextSize = 11
-avu3i6ba79.Parent = ivzbjw7kml
-ro8d8aht8(avu3i6ba79, 12)
-local kgnvv4y3 = Instance.new("TextLabel")
-kgnvv4y3.Size = UDim2.new(0.5, -15, 0, 48)
-kgnvv4y3.Position = UDim2.fromOffset(10, 54)
-kgnvv4y3.BackgroundColor3 = w8g9mpndij
-kgnvv4y3.BorderSizePixel = 0
-kgnvv4y3.Text = "My Dmg\n0"
-kgnvv4y3.TextColor3 = f0zftoic0
-kgnvv4y3.Font = Enum.Font.GothamBold
-kgnvv4y3.TextSize = 11
-kgnvv4y3.Parent = ivzbjw7kml
-ro8d8aht8(kgnvv4y3, 12)
-local dje3i0l = Instance.new("TextLabel")
-dje3i0l.Size = UDim2.new(0.5, -15, 0, 48)
-dje3i0l.Position = UDim2.new(0.5, 5, 0, 54)
-dje3i0l.BackgroundColor3 = w8g9mpndij
-dje3i0l.BorderSizePixel = 0
-dje3i0l.Text = "Others Dmg\n0"
-dje3i0l.TextColor3 = m2lp5hajar
-dje3i0l.Font = Enum.Font.GothamBold
-dje3i0l.TextSize = 11
-dje3i0l.Parent = ivzbjw7kml
-ro8d8aht8(dje3i0l, 12)
-local rd1zp0 = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 190), UDim2.new(1, 0, 0, 100))
-local heuaji = dtvqvrkvg3(rd1zp0, "MANUAL ORB", UDim2.fromOffset(12, 12), UDim2.new(0.5, -17, 0, 42), ytzlv0aaf)
-local n1hx5pk8 = dtvqvrkvg3(rd1zp0, "AUTO: OFF", UDim2.new(0.5, 5, 0, 12), UDim2.new(0.5, -17, 0, 42), yagg8k)
-local hge143k069 = Instance.new("TextLabel")
-hge143k069.Size = UDim2.new(1, -24, 0, 28)
-hge143k069.Position = UDim2.fromOffset(12, 61)
-hge143k069.BackgroundTransparency = 1
-hge143k069.Text = "Wait for the boss to be ready."
-hge143k069.TextColor3 = m2lp5hajar
-hge143k069.Font = Enum.Font.GothamMedium
-hge143k069.TextSize = 10
-hge143k069.Parent = rd1zp0
-local function ykjfgwf()
-g8raobkpk.Scale = cwo67x1
-z6k4lu.Text = tostring(math.floor(cwo67x1 * 100 + 0.5)) .. "%"
+
+local function refreshBossUI()
+	local ready = isBossReady()
+	local orbCount = #getDamageOrbs()
+
+	if ready then
+		bossReadyLabel.Text = "BOSS READY"
+		bossReadyLabel.TextColor3 = COLOR_GREEN
+	else
+		bossReadyLabel.Text = "WAIT FOR THE BOSS TO BE READY"
+		bossReadyLabel.TextColor3 = COLOR_ORANGE
+	end
+
+	bossHealthLabel.Text =
+		"Boss Health • "
+		.. formatNumber(bossCurrentHealth)
+		.. " / "
+		.. formatNumber(bossMaxHealth)
+
+	myDamageLabel.Text = "My Dmg\n" .. formatNumber(bossMyDamage)
+	othersDamageLabel.Text = "Others Dmg\n" .. formatNumber(bossOthersDamage)
+
+	if bossAuto then
+		autoOrbButton.Text = "AUTO: ON"
+		autoOrbButton.BackgroundColor3 = COLOR_GREEN
+	else
+		autoOrbButton.Text = "AUTO: OFF"
+		autoOrbButton.BackgroundColor3 = COLOR_RED
+	end
+
+	if not ready then
+		bossStatus.Text = bossAuto
+			and "AUTO ON • Waiting for the boss."
+			or "Wait for the boss to be ready."
+
+		bossStatus.TextColor3 = COLOR_ORANGE
+	elseif orbCount <= 0 then
+		bossStatus.Text = "Boss ready • Waiting for DamageOrbs..."
+		bossStatus.TextColor3 = COLOR_ORANGE
+	else
+		bossStatus.Text =
+			"Boss ready • "
+			.. tostring(orbCount)
+			.. " DamageOrb(s)"
+
+		bossStatus.TextColor3 =
+			bossAuto and COLOR_GREEN or COLOR_MUTED
+	end
+
+	updateWindowHeight()
 end
-local function r6svfb1(juxs8dwnq)
-cwo67x1 = math.clamp(math.floor((juxs8dwnq / gqkoo4) + 0.5) * gqkoo4, p246b1, tv08jlzn4u)
-ykjfgwf()
-end
-pshd63p235.MouseButton1Click:Connect(function()
-r6svfb1(cwo67x1 - gqkoo4)
+
+generalTab.MouseButton1Click:Connect(function()
+	currentTab = "General"
+	updateTabs()
 end)
-oqe4cg.MouseButton1Click:Connect(function()
-r6svfb1(cwo67x1 + gqkoo4)
+
+worldsTab.MouseButton1Click:Connect(function()
+	currentTab = "Worlds"
+	updateTabs()
 end)
-pshd63p235.MouseEnter:Connect(function()
-pshd63p235.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+
+bossTab.MouseButton1Click:Connect(function()
+	currentTab = "Boss"
+	updateTabs()
 end)
-pshd63p235.MouseLeave:Connect(function()
-pshd63p235.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+
+farmStart.MouseButton1Click:Connect(function()
+	startBestFarm()
+	refreshFarmUI()
 end)
-oqe4cg.MouseEnter:Connect(function()
-oqe4cg.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+
+farmStop.MouseButton1Click:Connect(function()
+	stopFarm()
+	refreshFarmUI()
 end)
-oqe4cg.MouseLeave:Connect(function()
-oqe4cg.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+
+world1Button.MouseButton1Click:Connect(function()
+	selectedWorld = 1
+	refreshWorldUI()
+
+	if worldAuto then
+		teleportSelectedWorld()
+	end
 end)
-local function l57g2xx0d()
-if lmo1fj == "General" then
-return udwzcu7
-elseif lmo1fj == "Worlds" then
-return g961i438
-else
-return be44fjj9nl
-end
-end
-local function wfzx501h(xtil50km)
-local shfapnxxk = 0
-for ojtzmf, u9eo1ia in ipairs(xtil50km:GetChildren()) do
-if u9eo1ia:IsA("GuiObject") and u9eo1ia.Visible then
-local ifqi0wmqyd = u9eo1ia.Position.Y.Offset
-local jvut5ggj5 = u9eo1ia.Size.Y.Offset
-shfapnxxk = math.max(shfapnxxk, ifqi0wmqyd + jvut5ggj5)
-end
-end
-return shfapnxxk
-end
-local function mi1wn08rmf()
-if erfuzi or wuiqmu5k then
-return
-end
-local xtil50km = l57g2xx0d()
-local tlx235nxe = wfzx501h(xtil50km)
-local ed2jfn0hd = yr3yohxu + tlx235nxe + ot2cx545e1
-ed2jfn0hd = math.clamp(ed2jfn0hd, haokhyl, p3jutl6lyb)
-ewbw3s.Size = UDim2.fromOffset(pudlm3my, ed2jfn0hd)
-mvop29.Size = UDim2.new(1, -20, 0, ed2jfn0hd - yr3yohxu - 6)
-end
-local function daxiirg6c()
-udwzcu7.Visible = lmo1fj == "General"
-g961i438.Visible = lmo1fj == "Worlds"
-be44fjj9nl.Visible = lmo1fj == "Boss"
-qpcbih.BackgroundColor3 = lmo1fj == "General" and jeqe4c or w8g9mpndij
-fc34q9jt.BackgroundColor3 = lmo1fj == "Worlds" and jeqe4c or w8g9mpndij
-tk8x0gb5y.BackgroundColor3 = lmo1fj == "Boss" and jeqe4c or w8g9mpndij
-mi1wn08rmf()
-end
-local function pmuxtqv()
-local hz2nvsieff = h45lrh5 or q8aqbv8()
-if hz2nvsieff then
-es9m299n.Text = "Speed Training (Requires " .. qynagxo(hz2nvsieff.Requirement) .. " Rebirth(s) • x" .. qynagxo(hz2nvsieff.Multiplier) .. ")"
-else
-es9m299n.Text = "Speed Training (No eligible treadmill)"
-end
-if kfnljk then
-d2g2jn58k.BackgroundColor3 = f0zftoic0
-oo9jh1.Text = "Active"
-oo9jh1.TextColor3 = f0zftoic0
-kou1mur.Visible = false
-es9m299n.Visible = false
-t99a0dh.Visible = true
-else
-d2g2jn58k.BackgroundColor3 = yagg8k
-oo9jh1.Text = "Disabled"
-oo9jh1.TextColor3 = yagg8k
-kou1mur.Visible = true
-es9m299n.Visible = true
-t99a0dh.Visible = false
-end
-mi1wn08rmf()
-end
-local function k4ndrppze()
-ge6s45x.BackgroundColor3 = vysocx == 1 and jeqe4c or w8g9mpndij
-xr72k8.BackgroundColor3 = vysocx == 2 and jeqe4c or w8g9mpndij
-if qom3uze5 then
-vy05dugng.Text = "AUTO: ON"
-vy05dugng.BackgroundColor3 = f0zftoic0
-caw5vj2.Text = "World " .. tostring(vysocx) .. " selected • Auto active"
-caw5vj2.TextColor3 = f0zftoic0
-else
-vy05dugng.Text = "AUTO: OFF"
-vy05dugng.BackgroundColor3 = yagg8k
-caw5vj2.Text = "World " .. tostring(vysocx) .. " selected"
-caw5vj2.TextColor3 = vsdsfwg9bz
-end
-mi1wn08rmf()
-end
-local function hxf6bm()
-local jzq7kuwv = o6d3a92()
-local iz1w0wfv = #kkabdnozq()
-if jzq7kuwv then
-ik7kmhvef.Text = "BOSS READY"
-ik7kmhvef.TextColor3 = f0zftoic0
-else
-ik7kmhvef.Text = "WAIT FOR THE BOSS TO BE READY"
-ik7kmhvef.TextColor3 = m2lp5hajar
-end
-avu3i6ba79.Text = "Boss Health • " .. qynagxo(xgxvwm) .. " / " .. qynagxo(mqdga5a)
-kgnvv4y3.Text = "My Dmg\n" .. qynagxo(tssvd4jx)
-dje3i0l.Text = "Others Dmg\n" .. qynagxo(wn4d2u)
-if lchws2 then
-n1hx5pk8.Text = "AUTO: ON"
-n1hx5pk8.BackgroundColor3 = f0zftoic0
-else
-n1hx5pk8.Text = "AUTO: OFF"
-n1hx5pk8.BackgroundColor3 = yagg8k
-end
-if not jzq7kuwv then
-hge143k069.Text = lchws2 and "AUTO ON • Waiting for the boss." or "Wait for the boss to be ready."
-hge143k069.TextColor3 = m2lp5hajar
-elseif iz1w0wfv <= 0 then
-hge143k069.Text = "Boss ready • Waiting for DamageOrbs..."
-hge143k069.TextColor3 = m2lp5hajar
-else
-hge143k069.Text = "Boss ready • " .. tostring(iz1w0wfv) .. " DamageOrb(s)"
-hge143k069.TextColor3 = lchws2 and f0zftoic0 or vsdsfwg9bz
-end
-mi1wn08rmf()
-end
-qpcbih.MouseButton1Click:Connect(function()
-lmo1fj = "General"
-daxiirg6c()
+
+world2Button.MouseButton1Click:Connect(function()
+	selectedWorld = 2
+	refreshWorldUI()
+
+	if worldAuto then
+		teleportSelectedWorld()
+	end
 end)
-fc34q9jt.MouseButton1Click:Connect(function()
-lmo1fj = "Worlds"
-daxiirg6c()
+
+world3Button.MouseButton1Click:Connect(function()
+	worldStatus.Text = "World 3 • Coming Soon..."
+	worldStatus.TextColor3 = COLOR_ORANGE
+	updateWindowHeight()
 end)
-tk8x0gb5y.MouseButton1Click:Connect(function()
-lmo1fj = "Boss"
-daxiirg6c()
+
+manualWorldButton.MouseButton1Click:Connect(function()
+	teleportSelectedWorld()
 end)
-kou1mur.MouseButton1Click:Connect(function()
-ufhco9jnp()
-pmuxtqv()
+
+autoWorldButton.MouseButton1Click:Connect(function()
+	worldAuto = not worldAuto
+	refreshWorldUI()
 end)
-t99a0dh.MouseButton1Click:Connect(function()
-b0jypl()
-pmuxtqv()
-end)
-ge6s45x.MouseButton1Click:Connect(function()
-vysocx = 1
-k4ndrppze()
-if qom3uze5 then
-smf6pwx()
-end
-end)
-xr72k8.MouseButton1Click:Connect(function()
-vysocx = 2
-k4ndrppze()
-if qom3uze5 then
-smf6pwx()
-end
-end)
-thppdx8xc.MouseButton1Click:Connect(function()
-caw5vj2.Text = "World 3 • Coming Soon..."
-caw5vj2.TextColor3 = m2lp5hajar
-mi1wn08rmf()
-end)
-hedqzs70f.MouseButton1Click:Connect(function()
-smf6pwx()
-end)
-vy05dugng.MouseButton1Click:Connect(function()
-qom3uze5 = not qom3uze5
-k4ndrppze()
-end)
+
 task.spawn(function()
-while not wuiqmu5k do
-task.wait(wze5vs)
-if qom3uze5 then
-pcall(smf6pwx)
-end
-end
+	while not closed do
+		task.wait(WORLD_AUTO_INTERVAL)
+
+		if worldAuto then
+			pcall(teleportSelectedWorld)
+		end
+	end
 end)
-heuaji.MouseButton1Click:Connect(function()
-if o6d3a92() then
-f0gsrz3kqy()
-end
-hxf6bm()
+
+manualOrbButton.MouseButton1Click:Connect(function()
+	if isBossReady() then
+		teleportNearestOrb()
+	end
+
+	refreshBossUI()
 end)
-n1hx5pk8.MouseButton1Click:Connect(function()
-lchws2 = not lchws2
-hxf6bm()
+
+autoOrbButton.MouseButton1Click:Connect(function()
+	bossAuto = not bossAuto
+	refreshBossUI()
 end)
+
 task.spawn(function()
-while not wuiqmu5k do
-task.wait(nr8wuv2i12)
-if lchws2 and o6d3a92() then
-pcall(w9tsu6)
-end
-end
+	while not closed do
+		task.wait(BOSS_ORB_INTERVAL)
+
+		if bossAuto and isBossReady() then
+			pcall(teleportNextOrb)
+		end
+	end
 end)
-k5perfc177.RenderStepped:Connect(function()
-if es9m299n.Visible and es9m299n.Parent then
-es9m299n.TextColor3 = Color3.fromHSV((os.clock() * 0.16) % 1, 0.85, 1)
-end
+
+RunService.RenderStepped:Connect(function()
+	if farmInfo.Visible and farmInfo.Parent then
+		farmInfo.TextColor3 =
+			Color3.fromHSV((os.clock() * 0.16) % 1, 0.85, 1)
+	end
 end)
-vtlbg3aj.CharacterAdded:Connect(function()
-local zusrywq1f = kfnljk
-if mjz5pqt8 then
-mjz5pqt8:Disconnect()
-mjz5pqt8 = nil
-end
-e7g4jdxt6()
-nbixdlqyf = nil
-task.delay(1, function()
-if wuiqmu5k then
-return
-end
-if zusrywq1f then
-for ojtzmf = 1, 8 do
-if ufhco9jnp() then
-break
-end
-task.wait(0.5)
-end
-end
-pmuxtqv()
+
+player.CharacterAdded:Connect(function()
+	local restoreFarm = farmActive
+
+	if farmConnection then
+		farmConnection:Disconnect()
+		farmConnection = nil
+	end
+
+	stopFarmAnimation()
+	farmAnchorCFrame = nil
+
+	task.delay(1, function()
+		if closed then
+			return
+		end
+
+		if restoreFarm then
+			for _ = 1, 8 do
+				if startBestFarm() then
+					break
+				end
+
+				task.wait(0.5)
+			end
+		end
+
+		refreshFarmUI()
+	end)
 end)
-end)
+
 task.spawn(function()
-while not wuiqmu5k do
-task.wait(1)
-pmuxtqv()
-hxf6bm()
-if not w3ydjgx07e then
-awg2pzml8d()
-end
-end
+	while not closed do
+		task.wait(1)
+
+		refreshFarmUI()
+		refreshBossUI()
+
+		if not bossRemoteConnection then
+			connectBossRemote()
+		end
+	end
 end)
-gla9x3.MouseButton1Click:Connect(function()
-erfuzi = not erfuzi
-if erfuzi then
-ewbw3s.Size = UDim2.fromOffset(pudlm3my, 58)
-hefrta.Visible = false
-mvop29.Visible = false
-gla9x3.Text = "+"
-else
-hefrta.Visible = true
-mvop29.Visible = true
-gla9x3.Text = "-"
-daxiirg6c()
-mi1wn08rmf()
-end
+
+minimize.MouseButton1Click:Connect(function()
+	minimized = not minimized
+
+	if minimized then
+		frame.Size = UDim2.fromOffset(WINDOW_WIDTH, 58)
+		tabs.Visible = false
+		content.Visible = false
+		minimize.Text = "+"
+	else
+		tabs.Visible = true
+		content.Visible = true
+		minimize.Text = "-"
+		updateTabs()
+		updateWindowHeight()
+	end
 end)
-srdemmvw2t.MouseButton1Click:Connect(function()
-wuiqmu5k = true
-qom3uze5 = false
-lchws2 = false
-b0jypl()
-if w3ydjgx07e then
-w3ydjgx07e:Disconnect()
-w3ydjgx07e = nil
-end
-ctphs2:Destroy()
+
+close.MouseButton1Click:Connect(function()
+	closed = true
+	worldAuto = false
+	bossAuto = false
+	stopFarm()
+
+	if bossRemoteConnection then
+		bossRemoteConnection:Disconnect()
+		bossRemoteConnection = nil
+	end
+
+	gui:Destroy()
 end)
-awg2pzml8d()
-ykjfgwf()
-daxiirg6c()
-pmuxtqv()
-k4ndrppze()
-hxf6bm()
+
+connectBossRemote()
+refreshScaleUI()
+updateTabs()
+refreshFarmUI()
+refreshWorldUI()
+refreshBossUI()

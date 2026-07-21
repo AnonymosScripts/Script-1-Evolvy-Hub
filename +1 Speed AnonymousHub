@@ -1,1 +1,1213 @@
-
+-- By: @AnonymousApks_Scripts
+local exv8qbm9ko = game:GetService("Players")
+local bt8f4nxu = game:GetService("ReplicatedStorage")
+local k5perfc177 = game:GetService("RunService")
+local glej9k3 = game:GetService("UserInputService")
+local vtlbg3aj = exv8qbm9ko.LocalPlayer
+local ly62bzs = vtlbg3aj:WaitForChild("PlayerGui")
+local e95zu6a6he = {
+[1] = Vector3.new(7983.75, 210.1, 480.69),
+[2] = Vector3.new(11910.93, 185.74, 971.65),
+}
+local vysocx = 1
+local qom3uze5 = false
+local wze5vs = 2
+local kfnljk = false
+local h45lrh5 = nil
+local nbixdlqyf = nil
+local ovsnqzs = nil
+local mjz5pqt8 = nil
+local wrh8urstq = 3
+local mbsojr0d0 = 1.1
+local ozeejed = false
+local l701uc84p3 = false
+local xgxvwm = 0
+local mqdga5a = 0
+local ilk6pdeu = nil
+local tssvd4jx = 0
+local wn4d2u = 0
+local lchws2 = false
+local uucuzzqg = 0
+local nr8wuv2i12 = 0.35
+local z28qpkw7 = 1.25
+local t6yfb88 = -math.huge
+local lmo1fj = "General"
+local erfuzi = false
+local wuiqmu5k = false
+local pudlm3my = 390
+local yr3yohxu = 114
+local ot2cx545e1 = 16
+local haokhyl = 360
+local p3jutl6lyb = 520
+local p246b1 = 0.65
+local tv08jlzn4u = 1.2
+local gqkoo4 = 0.05
+local cwo67x1 = 1
+local wavcgu = Color3.fromRGB(12, 12, 20)
+local s9bcxvy = Color3.fromRGB(20, 21, 33)
+local w8g9mpndij = Color3.fromRGB(42, 44, 62)
+local jeqe4c = Color3.fromRGB(0, 150, 255)
+local f0zftoic0 = Color3.fromRGB(0, 200, 110)
+local yagg8k = Color3.fromRGB(245, 75, 90)
+local m2lp5hajar = Color3.fromRGB(255, 170, 70)
+local ytzlv0aaf = Color3.fromRGB(145, 75, 230)
+local mq8facyxv = Color3.fromRGB(255, 255, 255)
+local vsdsfwg9bz = Color3.fromRGB(155, 160, 185)
+for ojtzmf, r65ol5u in ipairs({
+"AnonymousHubStableBase",
+"AnonymousHubSimpleStable",
+"AnonymousHubModern",
+"Anonymous_Hub",
+}) do
+local jy5olkvgy = ly62bzs:FindFirstChild(r65ol5u)
+if jy5olkvgy then
+jy5olkvgy:Destroy()
+end
+end
+local function ro8d8aht8(fqdzrwj, uwqub419)
+local lqmoqieuql = Instance.new("UICorner")
+lqmoqieuql.CornerRadius = UDim.new(0, uwqub419)
+lqmoqieuql.Parent = fqdzrwj
+return lqmoqieuql
+end
+local function i1l1vj(fqdzrwj, erxmivf4jd, h25evpy3, sabqnv9ws)
+local r73zujzzp = Instance.new("UIStroke")
+r73zujzzp.Color = erxmivf4jd
+r73zujzzp.Thickness = h25evpy3 or 1
+r73zujzzp.Transparency = sabqnv9ws or 0
+r73zujzzp.Parent = fqdzrwj
+return r73zujzzp
+end
+local function qrss0w(r0im213l8)
+return string.lower(string.gsub(tostring(r0im213l8 or ""), "[%s_%-%./:]", ""))
+end
+local function qynagxo(r0im213l8)
+local e4lp1crmo5 = tonumber(r0im213l8) or 0
+if e4lp1crmo5 >= 1000000000000.0 then
+return string.format("%.2fT", e4lp1crmo5 / 1000000000000.0)
+elseif e4lp1crmo5 >= 1000000000.0 then
+return string.format("%.2fB", e4lp1crmo5 / 1000000000.0)
+elseif e4lp1crmo5 >= 1000000.0 then
+return string.format("%.2fM", e4lp1crmo5 / 1000000.0)
+elseif e4lp1crmo5 >= 1000.0 then
+return string.format("%.2fK", e4lp1crmo5 / 1000.0)
+end
+if math.floor(e4lp1crmo5) == e4lp1crmo5 then
+return tostring(math.floor(e4lp1crmo5))
+end
+return string.format("%.2f", e4lp1crmo5)
+end
+local function y0knf60()
+local yrd6s7prg = vtlbg3aj.Character
+if not yrd6s7prg or not yrd6s7prg.Parent then
+yrd6s7prg = vtlbg3aj.CharacterAdded:Wait()
+end
+return yrd6s7prg
+end
+local function ssrv6rg4()
+local yrd6s7prg = y0knf60()
+return yrd6s7prg:FindFirstChildOfClass("Humanoid") or yrd6s7prg:WaitForChild("Humanoid", 5)
+end
+local function pxd2wvxl9()
+local yrd6s7prg = y0knf60()
+return yrd6s7prg:FindFirstChild("HumanoidRootPart") or yrd6s7prg:WaitForChild("HumanoidRootPart", 5)
+end
+local function oxl5t4786(vj3houd)
+local zxjv3nx4 = pxd2wvxl9()
+if not zxjv3nx4 then
+return false
+end
+pcall(function()
+zxjv3nx4.AssemblyLinearVelocity = Vector3.zero
+zxjv3nx4.AssemblyAngularVelocity = Vector3.zero
+end)
+zxjv3nx4.CFrame = vj3houd
+return true
+end
+local function ad23eyngn()
+local fbkbqesix = vtlbg3aj:FindFirstChild("leaderstats")
+local ujxmruw = fbkbqesix and fbkbqesix:FindFirstChild("Rebirths")
+return ujxmruw and tonumber(ujxmruw.Value) or 0
+end
+local function cl0a9gqxz0(jdi4lc5te, or178i1nh)
+if not jdi4lc5te then
+return nil
+end
+for emlm03g7, w36qmah0kb in pairs(jdi4lc5te:GetAttributes()) do
+local rt4u6ng = qrss0w(emlm03g7)
+for ojtzmf, bag8ttgfz in ipairs(or178i1nh) do
+if rt4u6ng == bag8ttgfz or string.find(rt4u6ng, bag8ttgfz, 1, true) then
+local e4lp1crmo5 = tonumber(w36qmah0kb)
+if e4lp1crmo5 then
+return e4lp1crmo5
+end
+end
+end
+end
+for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
+local rt4u6ng = qrss0w(d0bjferqq.Name)
+for ojtzmf, bag8ttgfz in ipairs(or178i1nh) do
+if rt4u6ng == bag8ttgfz or string.find(rt4u6ng, bag8ttgfz, 1, true) then
+if d0bjferqq:IsA("IntValue") or d0bjferqq:IsA("NumberValue") then
+return tonumber(d0bjferqq.Value)
+elseif d0bjferqq:IsA("StringValue") then
+local e4lp1crmo5 = tonumber(d0bjferqq.Value)
+if e4lp1crmo5 then
+return e4lp1crmo5
+end
+end
+end
+end
+end
+return nil
+end
+local function ac0owfdwu(jdi4lc5te)
+local vqm70laia = {
+jdi4lc5te and jdi4lc5te.Name or "",
+}
+if not jdi4lc5te then
+return vqm70laia
+end
+for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
+if d0bjferqq:IsA("TextLabel") or d0bjferqq:IsA("TextButton") or d0bjferqq:IsA("TextBox") then
+table.insert(vqm70laia, d0bjferqq.Text)
+elseif d0bjferqq:IsA("StringValue") then
+table.insert(vqm70laia, d0bjferqq.Value)
+end
+end
+return vqm70laia
+end
+local function rhhlc8(jdi4lc5te, pe7c7nohi)
+return cl0a9gqxz0(jdi4lc5te, pe7c7nohi)
+end
+local function a7j52u21c(jdi4lc5te, vxd096gg9l)
+for ojtzmf, stgvoveybi in ipairs(ac0owfdwu(jdi4lc5te)) do
+for ojtzmf, r8144wxh in ipairs(vxd096gg9l) do
+local nevreluzb = string.match(string.lower(tostring(stgvoveybi)), r8144wxh)
+if nevreluzb then
+return tonumber(nevreluzb)
+end
+end
+end
+return nil
+end
+local function m03pbj1(jdi4lc5te)
+if not jdi4lc5te then
+return nil
+end
+if jdi4lc5te:IsA("BasePart") then
+return jdi4lc5te
+end
+if jdi4lc5te:IsA("Model") and jdi4lc5te.PrimaryPart and jdi4lc5te.PrimaryPart:IsA("BasePart") then
+return jdi4lc5te.PrimaryPart
+end
+for ojtzmf, g102cet in ipairs({
+"Belt",
+"Platform",
+"MainPart",
+"Base",
+"Hitbox",
+"Treadmill",
+}) do
+local quo3u1w3n = jdi4lc5te:FindFirstChild(g102cet, true)
+if quo3u1w3n and quo3u1w3n:IsA("BasePart") then
+return quo3u1w3n
+end
+end
+local ygdbakin = nil
+local bywkxo7j = 0
+for ojtzmf, d0bjferqq in ipairs(jdi4lc5te:GetDescendants()) do
+if d0bjferqq:IsA("BasePart") then
+local b3jn2aatmm = d0bjferqq.Size.X * d0bjferqq.Size.Z
+if b3jn2aatmm > bywkxo7j then
+bywkxo7j = b3jn2aatmm
+ygdbakin = d0bjferqq
+end
+end
+end
+return ygdbakin
+end
+local function lcjcym(jdi4lc5te)
+if not jdi4lc5te then
+return false
+end
+local w0a4a5x = {
+"robux",
+"gamepass",
+"product",
+"developerproduct",
+"premium",
+"paid",
+"purchase",
+}
+local b766f453bs = string.lower(jdi4lc5te.Name)
+for emlm03g7, w36qmah0kb in pairs(jdi4lc5te:GetAttributes()) do
+local rt4u6ng = qrss0w(emlm03g7)
+local a9m6x1f4v = string.lower(tostring(w36qmah0kb))
+for ojtzmf, wk12nmq in ipairs(w0a4a5x) do
+if string.find(rt4u6ng, wk12nmq, 1, true) or string.find(a9m6x1f4v, wk12nmq, 1, true) then
+return true
+end
+end
+if (rt4u6ng == "isrobux" or rt4u6ng == "isgamepass" or rt4u6ng == "ispaid" or rt4u6ng == "requirespurchase") and w36qmah0kb == true then
+return true
+end
+end
+for ojtzmf, r0im213l8 in ipairs(ac0owfdwu(jdi4lc5te)) do
+b766f453bs = b766f453bs .. " " .. string.lower(r0im213l8)
+end
+for ojtzmf, wk12nmq in ipairs(w0a4a5x) do
+if string.find(b766f453bs, wk12nmq, 1, true) then
+return true
+end
+end
+if rhhlc8(jdi4lc5te, {
+"gamepassid",
+"productid",
+"developerproductid",
+"robuxprice",
+}) then
+return true
+end
+return false
+end
+local function p05n6oxb8(jdi4lc5te)
+local w20q5tmuh = rhhlc8(jdi4lc5te, {
+"rebirthsrequired",
+"requiredrebirths",
+"rebirthrequirement",
+"rebirths",
+"rebirth",
+}) or a7j52u21c(jdi4lc5te, {
+"(%d+)%s*rebirth",
+"rebirth[%a%s:_%-]*(%d+)",
+}) or 0
+local w02y4cok6 = rhhlc8(jdi4lc5te, {
+"speedmultiplier",
+"treadmillmultiplier",
+"multiplier",
+"boost",
+}) or a7j52u21c(jdi4lc5te, {
+"[xX]%s*(%d+%.?%d*)",
+"(%d+%.?%d*)%s*[xX]",
+}) or tonumber(string.match(string.lower(jdi4lc5te.Name), "[xX]%s*(%d+%.?%d*)")) or tonumber(string.match(string.lower(jdi4lc5te.Name), "(%d+%.?%d*)%s*[xX]")) or 1
+return {
+Instance = jdi4lc5te,
+Part = m03pbj1(jdi4lc5te),
+Requirement = math.max(0, tonumber(w20q5tmuh) or 0),
+Multiplier = math.max(1, tonumber(w02y4cok6) or 1),
+Paid = lcjcym(jdi4lc5te),
+}
+end
+local function q8aqbv8()
+local c6cm6se = workspace:FindFirstChild("Treadmills") or workspace:FindFirstChild("Treadmills", true)
+if not c6cm6se then
+return nil
+end
+local ujxmruw = ad23eyngn()
+local xqeqbryg = {
+}
+local wky5za8h = {
+[5] = true,
+[27] = true,
+[100] = true,
+}
+local function odirwhem(jdi4lc5te)
+if not (jdi4lc5te:IsA("Model") or jdi4lc5te:IsA("BasePart")) then
+return
+end
+local e63e1ef = p05n6oxb8(jdi4lc5te)
+if not e63e1ef.Part then
+return
+end
+local fhgu47 = {
+[1] = 0,
+[3] = 2,
+[9] = 5,
+[50] = 15,
+}
+if wky5za8h[e63e1ef.Multiplier] then
+e63e1ef.Paid = true
+end
+if fhgu47[e63e1ef.Multiplier] ~= nil then
+e63e1ef.Requirement = fhgu47[e63e1ef.Multiplier]
+end
+local bmg4fi3h = string.lower(jdi4lc5te.Name)
+if string.find(bmg4fi3h, "robux", 1, true) or string.find(bmg4fi3h, "gamepass", 1, true) or string.find(bmg4fi3h, "paid", 1, true) then
+e63e1ef.Paid = true
+end
+if not e63e1ef.Paid then
+table.insert(xqeqbryg, e63e1ef)
+end
+end
+for ojtzmf, u9eo1ia in ipairs(c6cm6se:GetChildren()) do
+odirwhem(u9eo1ia)
+end
+if #xqeqbryg == 0 then
+for ojtzmf, d0bjferqq in ipairs(c6cm6se:GetDescendants()) do
+if d0bjferqq:IsA("Model") then
+odirwhem(d0bjferqq)
+end
+end
+end
+local hz2nvsieff = nil
+for ojtzmf, e63e1ef in ipairs(xqeqbryg) do
+if e63e1ef.Requirement <= ujxmruw then
+if not hz2nvsieff or e63e1ef.Requirement > hz2nvsieff.Requirement or (e63e1ef.Requirement == hz2nvsieff.Requirement and e63e1ef.Multiplier > hz2nvsieff.Multiplier) then
+hz2nvsieff = e63e1ef
+end
+end
+end
+if ujxmruw <= 0 then
+local j0dqtvdm7 = nil
+for ojtzmf, e63e1ef in ipairs(xqeqbryg) do
+if e63e1ef.Requirement == 0 and e63e1ef.Multiplier == 1 then
+j0dqtvdm7 = e63e1ef
+break
+end
+end
+if j0dqtvdm7 then
+hz2nvsieff = j0dqtvdm7
+end
+end
+return hz2nvsieff
+end
+local function tvk79e1f2(e63e1ef)
+if not e63e1ef or not e63e1ef.Part or not e63e1ef.Part:IsDescendantOf(workspace) then
+return nil
+end
+local zxjv3nx4 = pxd2wvxl9()
+local adxacrbbww = ssrv6rg4()
+if not zxjv3nx4 or not adxacrbbww then
+return nil
+end
+local quo3u1w3n = e63e1ef.Part
+local ifqi0wmqyd = quo3u1w3n.Position.Y + (quo3u1w3n.Size.Y / 2) + adxacrbbww.HipHeight + (zxjv3nx4.Size.Y / 2) + 0.1
+local spufw39 = Vector3.new(quo3u1w3n.Position.X, ifqi0wmqyd, quo3u1w3n.Position.Z)
+local b6o7s1 = quo3u1w3n.CFrame.LookVector
+return CFrame.lookAt(spufw39, spufw39 + b6o7s1)
+end
+local function e7g4jdxt6()
+if ovsnqzs then
+pcall(function()
+ovsnqzs:Stop(0.15)
+ovsnqzs:Destroy()
+end)
+ovsnqzs = nil
+end
+end
+local function mm5ff6()
+e7g4jdxt6()
+local adxacrbbww = ssrv6rg4()
+if not adxacrbbww then
+return false
+end
+local rpjozcqvj = adxacrbbww:FindFirstChildOfClass("Animator")
+if not rpjozcqvj then
+rpjozcqvj = Instance.new("Animator")
+rpjozcqvj.Parent = adxacrbbww
+end
+local u03r3xj = Instance.new("Animation")
+u03r3xj.AnimationId = adxacrbbww.RigType == Enum.HumanoidRigType.R6 and "rbxassetid://180426354" or "rbxassetid://507777826"
+local n29sbd41, oxdye5e = pcall(function()
+return rpjozcqvj:LoadAnimation(u03r3xj)
+end)
+u03r3xj:Destroy()
+if not n29sbd41 or not oxdye5e then
+return false
+end
+oxdye5e.Priority = Enum.AnimationPriority.Action
+oxdye5e.Looped = true
+oxdye5e:Play(0.15, 1, mbsojr0d0)
+oxdye5e:AdjustSpeed(mbsojr0d0)
+ovsnqzs = oxdye5e
+return true
+end
+local function b0jypl()
+kfnljk = false
+h45lrh5 = nil
+nbixdlqyf = nil
+if mjz5pqt8 then
+mjz5pqt8:Disconnect()
+mjz5pqt8 = nil
+end
+e7g4jdxt6()
+local adxacrbbww = vtlbg3aj.Character and vtlbg3aj.Character:FindFirstChildOfClass("Humanoid")
+if adxacrbbww then
+adxacrbbww.AutoRotate = true
+end
+end
+local function ufhco9jnp()
+local hz2nvsieff = q8aqbv8()
+if not hz2nvsieff then
+return false
+end
+local d9qi8xi12e = tvk79e1f2(hz2nvsieff)
+if not d9qi8xi12e then
+return false
+end
+b0jypl()
+local adxacrbbww = ssrv6rg4()
+if not adxacrbbww then
+return false
+end
+kfnljk = true
+h45lrh5 = hz2nvsieff
+nbixdlqyf = d9qi8xi12e
+adxacrbbww.AutoRotate = false
+oxl5t4786(d9qi8xi12e)
+mm5ff6()
+mjz5pqt8 = k5perfc177.Heartbeat:Connect(function()
+if not kfnljk or not nbixdlqyf then
+return
+end
+local zxjv3nx4 = pxd2wvxl9()
+local bt8dp116w = ssrv6rg4()
+if not zxjv3nx4 or not bt8dp116w or bt8dp116w.Health <= 0 then
+return
+end
+if (zxjv3nx4.Position - nbixdlqyf.Position).Magnitude > wrh8urstq then
+zxjv3nx4.CFrame = nbixdlqyf
+end
+pcall(function()
+zxjv3nx4.AssemblyLinearVelocity = Vector3.zero
+zxjv3nx4.AssemblyAngularVelocity = Vector3.zero
+end)
+end)
+return true
+end
+local function smf6pwx()
+local zxjv3nx4 = pxd2wvxl9()
+local spufw39 = e95zu6a6he[selectedWorld]
+if not zxjv3nx4 or not spufw39 then
+return false
+end
+return oxl5t4786(CFrame.new(spufw39) * zxjv3nx4.CFrame.Rotation)
+end
+local function gi58nu(r65ol5u)
+return string.find(qrss0w(r65ol5u), "damageorb", 1, true) ~= nil
+end
+local function mb7105vbx(jdi4lc5te)
+if jdi4lc5te:IsA("BasePart") then
+return jdi4lc5te
+elseif jdi4lc5te:IsA("Model") then
+if jdi4lc5te.PrimaryPart then
+return jdi4lc5te.PrimaryPart
+end
+return jdi4lc5te:FindFirstChildWhichIsA("BasePart", true)
+end
+return jdi4lc5te:FindFirstChildWhichIsA("BasePart", true)
+end
+local function kkabdnozq()
+local t0eel44 = {
+}
+local tjg9z9h3x = {
+}
+for ojtzmf, d0bjferqq in ipairs(workspace:GetDescendants()) do
+if (d0bjferqq:IsA("Model") or d0bjferqq:IsA("BasePart")) and gi58nu(d0bjferqq.Name) then
+local quo3u1w3n = mb7105vbx(d0bjferqq)
+if quo3u1w3n and not tjg9z9h3x[part] then
+tjg9z9h3x[part] = true
+table.insert(t0eel44, {
+Instance = d0bjferqq,
+Part = quo3u1w3n,
+})
+end
+end
+end
+return t0eel44
+end
+local function f0gsrz3kqy()
+local zxjv3nx4 = pxd2wvxl9()
+if not zxjv3nx4 then
+return false
+end
+local v8zgw3f3 = nil
+local j2i684 = math.huge
+for ojtzmf, mi7jpn in ipairs(kkabdnozq()) do
+local lz6cmocg = (zxjv3nx4.Position - mi7jpn.Part.Position).Magnitude
+if lz6cmocg < j2i684 then
+j2i684 = lz6cmocg
+v8zgw3f3 = mi7jpn
+end
+end
+if not v8zgw3f3 then
+return false
+end
+local n29sbd41 = oxl5t4786(CFrame.new(v8zgw3f3.Part.Position) * zxjv3nx4.CFrame.Rotation)
+if n29sbd41 then
+t6yfb88 = os.clock()
+end
+return n29sbd41
+end
+local function w9tsu6()
+local l9h7f68ds = kkabdnozq()
+if #l9h7f68ds == 0 then
+uucuzzqg = 0
+return false
+end
+uucuzzqg = uucuzzqg + 1
+if uucuzzqg > #l9h7f68ds then
+uucuzzqg = 1
+end
+local zxjv3nx4 = pxd2wvxl9()
+if not zxjv3nx4 then
+return false
+end
+local n29sbd41 = oxl5t4786(CFrame.new(l9h7f68ds[bossOrbIndex].Part.Position) * zxjv3nx4.CFrame.Rotation)
+if n29sbd41 then
+t6yfb88 = os.clock()
+end
+return n29sbd41
+end
+local function bzcrwuoim()
+local cykgwt = bt8f4nxu:FindFirstChild("Modules")
+local au2nwa = cykgwt and cykgwt:FindFirstChild("Shared")
+local r91p3ba = au2nwa and au2nwa:FindFirstChild("RemoteEventService")
+if not r91p3ba then
+return nil
+end
+local q0z83m4 = r91p3ba:FindFirstChild("BossFightRemoteEvent")
+if q0z83m4 and q0z83m4:IsA("RemoteEvent") then
+return q0z83m4
+end
+local n29sbd41, afmwiayo = pcall(require, r91p3ba)
+if n29sbd41 and type(afmwiayo) == "table" and type(afmwiayo.Get) == "function" then
+local xpomb998s, dwd4cn = pcall(afmwiayo.Get, "BossFight")
+if not xpomb998s then
+xpomb998s, dwd4cn = pcall(afmwiayo.Get, afmwiayo, "BossFight")
+end
+if xpomb998s and dwd4cn and dwd4cn:IsA("RemoteEvent") then
+return dwd4cn
+end
+end
+return nil
+end
+local w3ydjgx07e = nil
+local function awg2pzml8d()
+if w3ydjgx07e then
+w3ydjgx07e:Disconnect()
+w3ydjgx07e = nil
+end
+local dwd4cn = bzcrwuoim()
+if not dwd4cn then
+return
+end
+w3ydjgx07e = dwd4cn.OnClientEvent:Connect(function(iulkchsg, ...)
+if iulkchsg == "CutsceneEnd" or iulkchsg == "MiniBossFightStart" then
+local ze1g8d8 = tonumber((...)) or 0
+ozeejed = true
+l701uc84p3 = true
+mqdga5a = ze1g8d8
+xgxvwm = ze1g8d8
+ilk6pdeu = ze1g8d8
+tssvd4jx = 0
+wn4d2u = 0
+t6yfb88 = -math.huge
+elseif iulkchsg == "UpdateHealth" then
+local ss3o9r, ze1g8d8 = ...
+ss3o9r = tonumber(ss3o9r) or 0
+ze1g8d8 = tonumber(ze1g8d8) or mqdga5a
+if ilk6pdeu and ss3o9r < ilk6pdeu then
+local c51tfy = ilk6pdeu - ss3o9r
+if os.clock() - t6yfb88 <= z28qpkw7 then
+tssvd4jx = tssvd4jx + c51tfy
+else
+wn4d2u = wn4d2u + c51tfy
+end
+end
+xgxvwm = ss3o9r
+mqdga5a = ze1g8d8
+ilk6pdeu = ss3o9r
+ozeejed = ss3o9r > 0
+l701uc84p3 = true
+elseif iulkchsg == "BossFightEnd" or iulkchsg == "DeathCutscene" or iulkchsg == "GateCloseCutscene" or iulkchsg == "DoorCutsceneStart" or iulkchsg == "StartCutscene" then
+ozeejed = false
+l701uc84p3 = true
+end
+end)
+end
+local function o6d3a92()
+if l701uc84p3 then
+return ozeejed
+end
+return #kkabdnozq() > 0
+end
+local ctphs2 = Instance.new("ScreenGui")
+ctphs2.Name = "AnonymousHubStableBase"
+ctphs2.ResetOnSpawn = false
+ctphs2.Parent = ly62bzs
+local ewbw3s = Instance.new("Frame")
+ewbw3s.Size = UDim2.fromOffset(pudlm3my, 390)
+ewbw3s.Position = UDim2.new(0.5, -195, 0.5, -195)
+ewbw3s.BackgroundColor3 = wavcgu
+ewbw3s.BorderSizePixel = 0
+ewbw3s.Active = true
+ewbw3s.Draggable = true
+ewbw3s.ClipsDescendants = true
+ewbw3s.Parent = ctphs2
+ro8d8aht8(ewbw3s, 24)
+i1l1vj(ewbw3s, Color3.fromRGB(70, 80, 110), 1, 0.35)
+local g8raobkpk = Instance.new("UIScale")
+g8raobkpk.Scale = cwo67x1
+g8raobkpk.Parent = ewbw3s
+local m3q5hfyfp5 = Instance.new("Frame")
+m3q5hfyfp5.Size = UDim2.new(1, 0, 0, 58)
+m3q5hfyfp5.BackgroundColor3 = jeqe4c
+m3q5hfyfp5.BorderSizePixel = 0
+m3q5hfyfp5.Parent = ewbw3s
+ro8d8aht8(m3q5hfyfp5, 24)
+local dyu2wphb = Instance.new("Frame")
+dyu2wphb.Size = UDim2.new(1, 0, 0, 18)
+dyu2wphb.Position = UDim2.new(0, 0, 1, -18)
+dyu2wphb.BackgroundColor3 = jeqe4c
+dyu2wphb.BorderSizePixel = 0
+dyu2wphb.Parent = m3q5hfyfp5
+local dx1gvvume = Instance.new("TextLabel")
+dx1gvvume.Size = UDim2.new(1, -100, 1, 0)
+dx1gvvume.Position = UDim2.fromOffset(16, 0)
+dx1gvvume.BackgroundTransparency = 1
+dx1gvvume.Text = "ANONYMOUS HUB"
+dx1gvvume.TextColor3 = mq8facyxv
+dx1gvvume.Font = Enum.Font.GothamBold
+dx1gvvume.TextSize = 20
+dx1gvvume.TextXAlignment = Enum.TextXAlignment.Left
+dx1gvvume.Parent = m3q5hfyfp5
+local gla9x3 = Instance.new("TextButton")
+gla9x3.Size = UDim2.fromOffset(34, 34)
+gla9x3.Position = UDim2.new(1, -76, 0.5, -17)
+gla9x3.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+gla9x3.BorderSizePixel = 0
+gla9x3.Text = "-"
+gla9x3.TextColor3 = mq8facyxv
+gla9x3.Font = Enum.Font.GothamBold
+gla9x3.TextSize = 18
+gla9x3.Parent = m3q5hfyfp5
+ro8d8aht8(gla9x3, 12)
+local srdemmvw2t = Instance.new("TextButton")
+srdemmvw2t.Size = UDim2.fromOffset(34, 34)
+srdemmvw2t.Position = UDim2.new(1, -39, 0.5, -17)
+srdemmvw2t.BackgroundColor3 = yagg8k
+srdemmvw2t.BorderSizePixel = 0
+srdemmvw2t.Text = "X"
+srdemmvw2t.TextColor3 = mq8facyxv
+srdemmvw2t.Font = Enum.Font.GothamBold
+srdemmvw2t.TextSize = 15
+srdemmvw2t.Parent = m3q5hfyfp5
+ro8d8aht8(srdemmvw2t, 12)
+local hefrta = Instance.new("Frame")
+hefrta.Size = UDim2.new(1, -16, 0, 42)
+hefrta.Position = UDim2.fromOffset(8, 65)
+hefrta.BackgroundColor3 = s9bcxvy
+hefrta.BorderSizePixel = 0
+hefrta.Parent = ewbw3s
+ro8d8aht8(hefrta, 14)
+local yocys5h6ot = Instance.new("UIListLayout")
+yocys5h6ot.FillDirection = Enum.FillDirection.Horizontal
+yocys5h6ot.Padding = UDim.new(0, 5)
+yocys5h6ot.HorizontalAlignment = Enum.HorizontalAlignment.Center
+yocys5h6ot.VerticalAlignment = Enum.VerticalAlignment.Center
+yocys5h6ot.Parent = hefrta
+local function wmmsl5cr(vc7kor)
+local n8boommid = Instance.new("TextButton")
+n8boommid.Size = UDim2.new(1 / 3, -7, 0, 34)
+n8boommid.BackgroundColor3 = w8g9mpndij
+n8boommid.BorderSizePixel = 0
+n8boommid.Text = vc7kor
+n8boommid.TextColor3 = mq8facyxv
+n8boommid.Font = Enum.Font.GothamBold
+n8boommid.TextSize = 10
+n8boommid.Parent = hefrta
+ro8d8aht8(n8boommid, 8)
+return n8boommid
+end
+local qpcbih = wmmsl5cr("GENERAL")
+local fc34q9jt = wmmsl5cr("WORLDS")
+local tk8x0gb5y = wmmsl5cr("BOSS FIGHT")
+local mvop29 = Instance.new("Frame")
+mvop29.Size = UDim2.new(1, -20, 1, -120)
+mvop29.Position = UDim2.fromOffset(10, 114)
+mvop29.BackgroundTransparency = 1
+mvop29.Parent = ewbw3s
+local udwzcu7 = Instance.new("Frame")
+udwzcu7.Size = UDim2.fromScale(1, 1)
+udwzcu7.BackgroundTransparency = 1
+udwzcu7.Parent = mvop29
+local g961i438 = Instance.new("Frame")
+g961i438.Size = UDim2.fromScale(1, 1)
+g961i438.BackgroundTransparency = 1
+g961i438.Visible = false
+g961i438.Parent = mvop29
+local be44fjj9nl = Instance.new("Frame")
+be44fjj9nl.Size = UDim2.fromScale(1, 1)
+be44fjj9nl.BackgroundTransparency = 1
+be44fjj9nl.Visible = false
+be44fjj9nl.Parent = mvop29
+local function hoybgdm(fqdzrwj, spufw39, uncm5g9fp)
+local epsgsrbxus = Instance.new("Frame")
+epsgsrbxus.Position = spufw39
+epsgsrbxus.Size = uncm5g9fp
+epsgsrbxus.BackgroundColor3 = s9bcxvy
+epsgsrbxus.BorderSizePixel = 0
+epsgsrbxus.Parent = fqdzrwj
+ro8d8aht8(epsgsrbxus, 16)
+i1l1vj(epsgsrbxus, Color3.fromRGB(75, 82, 110), 1, 0.6)
+return epsgsrbxus
+end
+local function dtvqvrkvg3(fqdzrwj, vc7kor, spufw39, uncm5g9fp, erxmivf4jd)
+local n8boommid = Instance.new("TextButton")
+n8boommid.Position = spufw39
+n8boommid.Size = uncm5g9fp
+n8boommid.BackgroundColor3 = erxmivf4jd
+n8boommid.BorderSizePixel = 0
+n8boommid.Text = vc7kor
+n8boommid.TextColor3 = mq8facyxv
+n8boommid.Font = Enum.Font.GothamBold
+n8boommid.TextSize = 12
+n8boommid.Parent = fqdzrwj
+ro8d8aht8(n8boommid, 12)
+return n8boommid
+end
+local rm9lh95nil = hoybgdm(udwzcu7, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 150))
+local r16wou = Instance.new("TextLabel")
+r16wou.Size = UDim2.fromOffset(70, 24)
+r16wou.Position = UDim2.fromOffset(12, 8)
+r16wou.BackgroundTransparency = 1
+r16wou.Text = "FARM XP"
+r16wou.TextColor3 = mq8facyxv
+r16wou.Font = Enum.Font.GothamBold
+r16wou.TextSize = 14
+r16wou.TextXAlignment = Enum.TextXAlignment.Left
+r16wou.Parent = rm9lh95nil
+local d2g2jn58k = Instance.new("Frame")
+d2g2jn58k.Size = UDim2.fromOffset(10, 10)
+d2g2jn58k.Position = UDim2.fromOffset(84, 15)
+d2g2jn58k.BackgroundColor3 = yagg8k
+d2g2jn58k.BorderSizePixel = 0
+d2g2jn58k.Parent = rm9lh95nil
+ro8d8aht8(d2g2jn58k, 5)
+local oo9jh1 = Instance.new("TextLabel")
+oo9jh1.Size = UDim2.fromOffset(70, 22)
+oo9jh1.Position = UDim2.fromOffset(100, 9)
+oo9jh1.BackgroundTransparency = 1
+oo9jh1.Text = "Disabled"
+oo9jh1.TextColor3 = yagg8k
+oo9jh1.Font = Enum.Font.GothamBold
+oo9jh1.TextSize = 13
+oo9jh1.TextXAlignment = Enum.TextXAlignment.Left
+oo9jh1.Parent = rm9lh95nil
+local kou1mur = dtvqvrkvg3(rm9lh95nil, "START BEST TREADMILL", UDim2.fromOffset(12, 42), UDim2.new(1, -24, 0, 42), jeqe4c)
+local es9m299n = Instance.new("TextLabel")
+es9m299n.Size = UDim2.new(1, -24, 0, 34)
+es9m299n.Position = UDim2.fromOffset(12, 92)
+es9m299n.BackgroundTransparency = 1
+es9m299n.Text = "Speed Training"
+es9m299n.TextColor3 = jeqe4c
+es9m299n.Font = Enum.Font.GothamBold
+es9m299n.TextSize = 10
+es9m299n.TextWrapped = true
+es9m299n.Parent = rm9lh95nil
+local t99a0dh = dtvqvrkvg3(rm9lh95nil, "STOP", UDim2.new(0.5, -80, 0, 53), UDim2.fromOffset(160, 38), yagg8k)
+t99a0dh.Visible = false
+local j6szem9g9 = hoybgdm(udwzcu7, UDim2.fromOffset(0, 160), UDim2.new(1, 0, 0, 88))
+local rxnkp794x = Instance.new("TextLabel")
+rxnkp794x.Size = UDim2.new(1, -24, 0, 24)
+rxnkp794x.Position = UDim2.fromOffset(12, 8)
+rxnkp794x.BackgroundTransparency = 1
+rxnkp794x.Text = "HUB SIZE"
+rxnkp794x.TextColor3 = mq8facyxv
+rxnkp794x.Font = Enum.Font.GothamBold
+rxnkp794x.TextSize = 14
+rxnkp794x.TextXAlignment = Enum.TextXAlignment.Left
+rxnkp794x.Parent = j6szem9g9
+local pshd63p235 = dtvqvrkvg3(j6szem9g9, "-", UDim2.fromOffset(12, 38), UDim2.fromOffset(56, 36), Color3.fromRGB(55, 85, 170))
+pshd63p235.TextSize = 18
+local z6k4lu = Instance.new("TextLabel")
+z6k4lu.Size = UDim2.new(1, -152, 0, 36)
+z6k4lu.Position = UDim2.fromOffset(76, 38)
+z6k4lu.BackgroundColor3 = w8g9mpndij
+z6k4lu.BorderSizePixel = 0
+z6k4lu.Text = "100%"
+z6k4lu.TextColor3 = mq8facyxv
+z6k4lu.Font = Enum.Font.GothamBold
+z6k4lu.TextSize = 12
+z6k4lu.Parent = j6szem9g9
+ro8d8aht8(z6k4lu, 12)
+local oqe4cg = dtvqvrkvg3(j6szem9g9, "+", UDim2.new(1, -68, 0, 38), UDim2.fromOffset(56, 36), Color3.fromRGB(55, 85, 170))
+oqe4cg.TextSize = 17
+local mbwdolk = hoybgdm(g961i438, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 100))
+local bx2svbeli = Instance.new("TextLabel")
+bx2svbeli.Size = UDim2.new(1, -24, 0, 24)
+bx2svbeli.Position = UDim2.fromOffset(12, 8)
+bx2svbeli.BackgroundTransparency = 1
+bx2svbeli.Text = "SELECT WORLD"
+bx2svbeli.TextColor3 = mq8facyxv
+bx2svbeli.Font = Enum.Font.GothamBold
+bx2svbeli.TextSize = 14
+bx2svbeli.TextXAlignment = Enum.TextXAlignment.Left
+bx2svbeli.Parent = mbwdolk
+local ge6s45x = dtvqvrkvg3(mbwdolk, "WORLD 1", UDim2.fromOffset(12, 38), UDim2.new(1 / 3, -12, 0, 46), jeqe4c)
+local xr72k8 = dtvqvrkvg3(mbwdolk, "WORLD 2", UDim2.new(1 / 3, 4, 0, 38), UDim2.new(1 / 3, -12, 0, 46), w8g9mpndij)
+local thppdx8xc = dtvqvrkvg3(mbwdolk, "WORLD 3\nCOMING SOON...", UDim2.new(2 / 3, -4, 0, 38), UDim2.new(1 / 3, -12, 0, 46), w8g9mpndij)
+thppdx8xc.TextSize = 9
+thppdx8xc.TextColor3 = vsdsfwg9bz
+local mnjl3hi = hoybgdm(g961i438, UDim2.fromOffset(0, 110), UDim2.new(1, 0, 0, 110))
+local c5z60g06j = Instance.new("TextLabel")
+c5z60g06j.Size = UDim2.new(1, -24, 0, 24)
+c5z60g06j.Position = UDim2.fromOffset(12, 9)
+c5z60g06j.BackgroundTransparency = 1
+c5z60g06j.Text = "END STAGE 14"
+c5z60g06j.TextColor3 = mq8facyxv
+c5z60g06j.Font = Enum.Font.GothamBold
+c5z60g06j.TextSize = 14
+c5z60g06j.TextXAlignment = Enum.TextXAlignment.Left
+c5z60g06j.Parent = mnjl3hi
+local hedqzs70f = dtvqvrkvg3(mnjl3hi, "MANUAL", UDim2.fromOffset(12, 42), UDim2.new(0.5, -17, 0, 44), f0zftoic0)
+local vy05dugng = dtvqvrkvg3(mnjl3hi, "AUTO: OFF", UDim2.new(0.5, 5, 0, 42), UDim2.new(0.5, -17, 0, 44), yagg8k)
+local caw5vj2 = Instance.new("TextLabel")
+caw5vj2.Size = UDim2.new(1, -12, 0, 28)
+caw5vj2.Position = UDim2.fromOffset(6, 226)
+caw5vj2.BackgroundTransparency = 1
+caw5vj2.Text = "World 1 selected"
+caw5vj2.TextColor3 = vsdsfwg9bz
+caw5vj2.Font = Enum.Font.GothamMedium
+caw5vj2.TextSize = 10
+caw5vj2.Parent = g961i438
+local c7su1b6 = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 0), UDim2.new(1, 0, 0, 58))
+local ik7kmhvef = Instance.new("TextLabel")
+ik7kmhvef.Size = UDim2.new(1, -20, 1, -16)
+ik7kmhvef.Position = UDim2.fromOffset(10, 8)
+ik7kmhvef.BackgroundColor3 = w8g9mpndij
+ik7kmhvef.BorderSizePixel = 0
+ik7kmhvef.Text = "WAIT FOR THE BOSS TO BE READY"
+ik7kmhvef.TextColor3 = m2lp5hajar
+ik7kmhvef.Font = Enum.Font.GothamBold
+ik7kmhvef.TextSize = 10
+ik7kmhvef.Parent = c7su1b6
+ro8d8aht8(ik7kmhvef, 12)
+local ivzbjw7kml = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 68), UDim2.new(1, 0, 0, 112))
+local avu3i6ba79 = Instance.new("TextLabel")
+avu3i6ba79.Size = UDim2.new(1, -20, 0, 34)
+avu3i6ba79.Position = UDim2.fromOffset(10, 10)
+avu3i6ba79.BackgroundColor3 = w8g9mpndij
+avu3i6ba79.BorderSizePixel = 0
+avu3i6ba79.Text = "Boss Health • 0 / 0"
+avu3i6ba79.TextColor3 = mq8facyxv
+avu3i6ba79.Font = Enum.Font.GothamBold
+avu3i6ba79.TextSize = 11
+avu3i6ba79.Parent = ivzbjw7kml
+ro8d8aht8(avu3i6ba79, 12)
+local kgnvv4y3 = Instance.new("TextLabel")
+kgnvv4y3.Size = UDim2.new(0.5, -15, 0, 48)
+kgnvv4y3.Position = UDim2.fromOffset(10, 54)
+kgnvv4y3.BackgroundColor3 = w8g9mpndij
+kgnvv4y3.BorderSizePixel = 0
+kgnvv4y3.Text = "My Dmg\n0"
+kgnvv4y3.TextColor3 = f0zftoic0
+kgnvv4y3.Font = Enum.Font.GothamBold
+kgnvv4y3.TextSize = 11
+kgnvv4y3.Parent = ivzbjw7kml
+ro8d8aht8(kgnvv4y3, 12)
+local dje3i0l = Instance.new("TextLabel")
+dje3i0l.Size = UDim2.new(0.5, -15, 0, 48)
+dje3i0l.Position = UDim2.new(0.5, 5, 0, 54)
+dje3i0l.BackgroundColor3 = w8g9mpndij
+dje3i0l.BorderSizePixel = 0
+dje3i0l.Text = "Others Dmg\n0"
+dje3i0l.TextColor3 = m2lp5hajar
+dje3i0l.Font = Enum.Font.GothamBold
+dje3i0l.TextSize = 11
+dje3i0l.Parent = ivzbjw7kml
+ro8d8aht8(dje3i0l, 12)
+local rd1zp0 = hoybgdm(be44fjj9nl, UDim2.fromOffset(0, 190), UDim2.new(1, 0, 0, 100))
+local heuaji = dtvqvrkvg3(rd1zp0, "MANUAL ORB", UDim2.fromOffset(12, 12), UDim2.new(0.5, -17, 0, 42), ytzlv0aaf)
+local n1hx5pk8 = dtvqvrkvg3(rd1zp0, "AUTO: OFF", UDim2.new(0.5, 5, 0, 12), UDim2.new(0.5, -17, 0, 42), yagg8k)
+local hge143k069 = Instance.new("TextLabel")
+hge143k069.Size = UDim2.new(1, -24, 0, 28)
+hge143k069.Position = UDim2.fromOffset(12, 61)
+hge143k069.BackgroundTransparency = 1
+hge143k069.Text = "Wait for the boss to be ready."
+hge143k069.TextColor3 = m2lp5hajar
+hge143k069.Font = Enum.Font.GothamMedium
+hge143k069.TextSize = 10
+hge143k069.Parent = rd1zp0
+local function ykjfgwf()
+g8raobkpk.Scale = cwo67x1
+z6k4lu.Text = tostring(math.floor(cwo67x1 * 100 + 0.5)) .. "%"
+end
+local function r6svfb1(juxs8dwnq)
+cwo67x1 = math.clamp(math.floor((juxs8dwnq / gqkoo4) + 0.5) * gqkoo4, p246b1, tv08jlzn4u)
+ykjfgwf()
+end
+pshd63p235.MouseButton1Click:Connect(function()
+r6svfb1(cwo67x1 - gqkoo4)
+end)
+oqe4cg.MouseButton1Click:Connect(function()
+r6svfb1(cwo67x1 + gqkoo4)
+end)
+pshd63p235.MouseEnter:Connect(function()
+pshd63p235.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+end)
+pshd63p235.MouseLeave:Connect(function()
+pshd63p235.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+end)
+oqe4cg.MouseEnter:Connect(function()
+oqe4cg.BackgroundColor3 = Color3.fromRGB(70, 105, 200)
+end)
+oqe4cg.MouseLeave:Connect(function()
+oqe4cg.BackgroundColor3 = Color3.fromRGB(55, 85, 170)
+end)
+local function l57g2xx0d()
+if lmo1fj == "General" then
+return udwzcu7
+elseif lmo1fj == "Worlds" then
+return g961i438
+else
+return be44fjj9nl
+end
+end
+local function wfzx501h(xtil50km)
+local shfapnxxk = 0
+for ojtzmf, u9eo1ia in ipairs(xtil50km:GetChildren()) do
+if u9eo1ia:IsA("GuiObject") and u9eo1ia.Visible then
+local ifqi0wmqyd = u9eo1ia.Position.Y.Offset
+local jvut5ggj5 = u9eo1ia.Size.Y.Offset
+shfapnxxk = math.max(shfapnxxk, ifqi0wmqyd + jvut5ggj5)
+end
+end
+return shfapnxxk
+end
+local function mi1wn08rmf()
+if erfuzi or wuiqmu5k then
+return
+end
+local xtil50km = l57g2xx0d()
+local tlx235nxe = wfzx501h(xtil50km)
+local ed2jfn0hd = yr3yohxu + tlx235nxe + ot2cx545e1
+ed2jfn0hd = math.clamp(ed2jfn0hd, haokhyl, p3jutl6lyb)
+ewbw3s.Size = UDim2.fromOffset(pudlm3my, ed2jfn0hd)
+mvop29.Size = UDim2.new(1, -20, 0, ed2jfn0hd - yr3yohxu - 6)
+end
+local function daxiirg6c()
+udwzcu7.Visible = lmo1fj == "General"
+g961i438.Visible = lmo1fj == "Worlds"
+be44fjj9nl.Visible = lmo1fj == "Boss"
+qpcbih.BackgroundColor3 = lmo1fj == "General" and jeqe4c or w8g9mpndij
+fc34q9jt.BackgroundColor3 = lmo1fj == "Worlds" and jeqe4c or w8g9mpndij
+tk8x0gb5y.BackgroundColor3 = lmo1fj == "Boss" and jeqe4c or w8g9mpndij
+mi1wn08rmf()
+end
+local function pmuxtqv()
+local hz2nvsieff = h45lrh5 or q8aqbv8()
+if hz2nvsieff then
+es9m299n.Text = "Speed Training (Requires " .. qynagxo(hz2nvsieff.Requirement) .. " Rebirth(s) • x" .. qynagxo(hz2nvsieff.Multiplier) .. ")"
+else
+es9m299n.Text = "Speed Training (No eligible treadmill)"
+end
+if kfnljk then
+d2g2jn58k.BackgroundColor3 = f0zftoic0
+oo9jh1.Text = "Active"
+oo9jh1.TextColor3 = f0zftoic0
+kou1mur.Visible = false
+es9m299n.Visible = false
+t99a0dh.Visible = true
+else
+d2g2jn58k.BackgroundColor3 = yagg8k
+oo9jh1.Text = "Disabled"
+oo9jh1.TextColor3 = yagg8k
+kou1mur.Visible = true
+es9m299n.Visible = true
+t99a0dh.Visible = false
+end
+mi1wn08rmf()
+end
+local function k4ndrppze()
+ge6s45x.BackgroundColor3 = vysocx == 1 and jeqe4c or w8g9mpndij
+xr72k8.BackgroundColor3 = vysocx == 2 and jeqe4c or w8g9mpndij
+if qom3uze5 then
+vy05dugng.Text = "AUTO: ON"
+vy05dugng.BackgroundColor3 = f0zftoic0
+caw5vj2.Text = "World " .. tostring(vysocx) .. " selected • Auto active"
+caw5vj2.TextColor3 = f0zftoic0
+else
+vy05dugng.Text = "AUTO: OFF"
+vy05dugng.BackgroundColor3 = yagg8k
+caw5vj2.Text = "World " .. tostring(vysocx) .. " selected"
+caw5vj2.TextColor3 = vsdsfwg9bz
+end
+mi1wn08rmf()
+end
+local function hxf6bm()
+local jzq7kuwv = o6d3a92()
+local iz1w0wfv = #kkabdnozq()
+if jzq7kuwv then
+ik7kmhvef.Text = "BOSS READY"
+ik7kmhvef.TextColor3 = f0zftoic0
+else
+ik7kmhvef.Text = "WAIT FOR THE BOSS TO BE READY"
+ik7kmhvef.TextColor3 = m2lp5hajar
+end
+avu3i6ba79.Text = "Boss Health • " .. qynagxo(xgxvwm) .. " / " .. qynagxo(mqdga5a)
+kgnvv4y3.Text = "My Dmg\n" .. qynagxo(tssvd4jx)
+dje3i0l.Text = "Others Dmg\n" .. qynagxo(wn4d2u)
+if lchws2 then
+n1hx5pk8.Text = "AUTO: ON"
+n1hx5pk8.BackgroundColor3 = f0zftoic0
+else
+n1hx5pk8.Text = "AUTO: OFF"
+n1hx5pk8.BackgroundColor3 = yagg8k
+end
+if not jzq7kuwv then
+hge143k069.Text = lchws2 and "AUTO ON • Waiting for the boss." or "Wait for the boss to be ready."
+hge143k069.TextColor3 = m2lp5hajar
+elseif iz1w0wfv <= 0 then
+hge143k069.Text = "Boss ready • Waiting for DamageOrbs..."
+hge143k069.TextColor3 = m2lp5hajar
+else
+hge143k069.Text = "Boss ready • " .. tostring(iz1w0wfv) .. " DamageOrb(s)"
+hge143k069.TextColor3 = lchws2 and f0zftoic0 or vsdsfwg9bz
+end
+mi1wn08rmf()
+end
+qpcbih.MouseButton1Click:Connect(function()
+lmo1fj = "General"
+daxiirg6c()
+end)
+fc34q9jt.MouseButton1Click:Connect(function()
+lmo1fj = "Worlds"
+daxiirg6c()
+end)
+tk8x0gb5y.MouseButton1Click:Connect(function()
+lmo1fj = "Boss"
+daxiirg6c()
+end)
+kou1mur.MouseButton1Click:Connect(function()
+ufhco9jnp()
+pmuxtqv()
+end)
+t99a0dh.MouseButton1Click:Connect(function()
+b0jypl()
+pmuxtqv()
+end)
+ge6s45x.MouseButton1Click:Connect(function()
+vysocx = 1
+k4ndrppze()
+if qom3uze5 then
+smf6pwx()
+end
+end)
+xr72k8.MouseButton1Click:Connect(function()
+vysocx = 2
+k4ndrppze()
+if qom3uze5 then
+smf6pwx()
+end
+end)
+thppdx8xc.MouseButton1Click:Connect(function()
+caw5vj2.Text = "World 3 • Coming Soon..."
+caw5vj2.TextColor3 = m2lp5hajar
+mi1wn08rmf()
+end)
+hedqzs70f.MouseButton1Click:Connect(function()
+smf6pwx()
+end)
+vy05dugng.MouseButton1Click:Connect(function()
+qom3uze5 = not qom3uze5
+k4ndrppze()
+end)
+task.spawn(function()
+while not wuiqmu5k do
+task.wait(wze5vs)
+if qom3uze5 then
+pcall(smf6pwx)
+end
+end
+end)
+heuaji.MouseButton1Click:Connect(function()
+if o6d3a92() then
+f0gsrz3kqy()
+end
+hxf6bm()
+end)
+n1hx5pk8.MouseButton1Click:Connect(function()
+lchws2 = not lchws2
+hxf6bm()
+end)
+task.spawn(function()
+while not wuiqmu5k do
+task.wait(nr8wuv2i12)
+if lchws2 and o6d3a92() then
+pcall(w9tsu6)
+end
+end
+end)
+k5perfc177.RenderStepped:Connect(function()
+if es9m299n.Visible and es9m299n.Parent then
+es9m299n.TextColor3 = Color3.fromHSV((os.clock() * 0.16) % 1, 0.85, 1)
+end
+end)
+vtlbg3aj.CharacterAdded:Connect(function()
+local zusrywq1f = kfnljk
+if mjz5pqt8 then
+mjz5pqt8:Disconnect()
+mjz5pqt8 = nil
+end
+e7g4jdxt6()
+nbixdlqyf = nil
+task.delay(1, function()
+if wuiqmu5k then
+return
+end
+if zusrywq1f then
+for ojtzmf = 1, 8 do
+if ufhco9jnp() then
+break
+end
+task.wait(0.5)
+end
+end
+pmuxtqv()
+end)
+end)
+task.spawn(function()
+while not wuiqmu5k do
+task.wait(1)
+pmuxtqv()
+hxf6bm()
+if not w3ydjgx07e then
+awg2pzml8d()
+end
+end
+end)
+gla9x3.MouseButton1Click:Connect(function()
+erfuzi = not erfuzi
+if erfuzi then
+ewbw3s.Size = UDim2.fromOffset(pudlm3my, 58)
+hefrta.Visible = false
+mvop29.Visible = false
+gla9x3.Text = "+"
+else
+hefrta.Visible = true
+mvop29.Visible = true
+gla9x3.Text = "-"
+daxiirg6c()
+mi1wn08rmf()
+end
+end)
+srdemmvw2t.MouseButton1Click:Connect(function()
+wuiqmu5k = true
+qom3uze5 = false
+lchws2 = false
+b0jypl()
+if w3ydjgx07e then
+w3ydjgx07e:Disconnect()
+w3ydjgx07e = nil
+end
+ctphs2:Destroy()
+end)
+awg2pzml8d()
+ykjfgwf()
+daxiirg6c()
+pmuxtqv()
+k4ndrppze()
+hxf6bm()

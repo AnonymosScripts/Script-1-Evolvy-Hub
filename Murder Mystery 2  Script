@@ -12,8 +12,6 @@ local VirtualUser = game:GetService("VirtualUser")
 local LocalPlayer = Players.LocalPlayer
 
 local CONFIG = {
-	-- Substitua pelo ID da imagem enviada ao Roblox.
-	-- Exemplo: "rbxassetid://1234567890"
 	LOGO_ASSET_ID = "rbxassetid://72242419948377",
 
 	ESP_DEFAULT = true,
@@ -27,7 +25,6 @@ local CONFIG = {
 	COIN_WAIT_AFTER_ARRIVAL = 0.75,
 	TELEPORT_HEIGHT = 2.5,
 
-	-- Forma exata e recomendada para identificar a arma dropada.
 	DROPPED_GUN_TAG = "DroppedSheriffGun",
 	DROPPED_GUN_ATTRIBUTES = {
 		"DroppedSheriffGun",
@@ -111,7 +108,7 @@ local state = {
 }
 
 local function log(...)
-	print("[Anonymous Hub Murder V37]", ...)
+	print("[Anonymous Hub]", ...)
 end
 
 local function lower(value)

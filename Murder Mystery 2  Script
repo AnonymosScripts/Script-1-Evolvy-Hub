@@ -1,0 +1,2409 @@
+-- By: @AnonymousApks_Scripts
+
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CollectionService = game:GetService("CollectionService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+
+local LocalPlayer = Players.LocalPlayer
+
+local CONFIG = {
+	-- Substitua pelo ID da imagem enviada ao Roblox.
+	-- Exemplo: "rbxassetid://1234567890"
+	LOGO_ASSET_ID = "rbxassetid://72242419948377",
+
+	ESP_DEFAULT = true,
+	AUTO_COIN_DEFAULT = false,
+
+	ROLE_UPDATE_INTERVAL = 0.25,
+	COIN_INTERVAL = 0.10,
+	COIN_MOVE_SPEED = 20,
+	COIN_MIN_MOVE_TIME = 0.45,
+	COIN_MAX_MOVE_TIME = 3.0,
+	COIN_WAIT_AFTER_ARRIVAL = 0.75,
+	TELEPORT_HEIGHT = 2.5,
+
+	-- Forma exata e recomendada para identificar a arma dropada.
+	DROPPED_GUN_TAG = "DroppedSheriffGun",
+	DROPPED_GUN_ATTRIBUTES = {
+		"DroppedSheriffGun",
+		"IsDroppedGun",
+		"DroppedGun",
+	},
+
+	KNIFE_NAMES = {
+		knife = true,
+		knives = true,
+		murdererknife = true,
+		murderknife = true,
+		blade = true,
+	},
+
+	GUN_NAMES = {
+		gun = true,
+		revolver = true,
+		sheriffgun = true,
+		pistol = true,
+	},
+
+	ROLE_COLORS = {
+		Lobby = Color3.fromRGB(255, 255, 255),
+		Unknown = Color3.fromRGB(255, 255, 255),
+		Innocent = Color3.fromRGB(55, 255, 100),
+		Murderer = Color3.fromRGB(255, 55, 55),
+		Sheriff = Color3.fromRGB(55, 135, 255),
+		Hero = Color3.fromRGB(255, 215, 55),
+	},
+}
+
+local state = {
+	espEnabled = CONFIG.ESP_DEFAULT,
+	autoCoinEnabled = CONFIG.AUTO_COIN_DEFAULT,
+	roundActive = false,
+	minimized = false,
+	destroyed = false,
+
+	highlights = {},
+	nameTags = {},
+	lastRoles = {},
+	connections = {},
+
+	droppedGunCandidate = nil,
+	droppedGunRoot = nil,
+	lastDroppedGunScan = 0,
+	droppedGunScanInterval = 1.25,
+
+	originalSheriffUserId = nil,
+	wasRoundActive = false,
+
+	autoTP = {
+		DroppedGun = false,
+		Murderer = false,
+		Sheriff = false,
+		Innocent = false,
+	},
+	autoTPInterval = 0.65,
+
+	lastRoundActive = false,
+	lastLocalRole = "Lobby",
+	lastLocalAlive = false,
+	resultStatus = nil,
+	resultStatusUntil = 0,
+
+	roleColorTime = 0,
+	activeCoinTween = nil,
+	antiAfkVisualEnabled = false,
+	antiAfkConnection = nil,
+
+
+	lastCoinRecoveryTeleport = 0,
+	coinRecoveryInterval = 15,
+
+	collectedCoins = 0,
+	collectedCoinIds = {},
+	coinLimit = 40,
+	waitingForNextRound = false,
+	respawningFromCoinLimit = false,
+}
+
+local function log(...)
+	print("[Anonymous Hub Murder V37]", ...)
+end
+
+local function lower(value)
+	return string.lower(tostring(value or ""))
+end
+
+local function contains(value, wanted)
+	return string.find(lower(value), lower(wanted), 1, true) ~= nil
+end
+
+local function connect(signal, callback)
+	local connection = signal:Connect(callback)
+	table.insert(state.connections, connection)
+	return connection
+end
+
+local function disableAutoLocalization(object)
+	pcall(function()
+		object.AutoLocalize = false
+	end)
+end
+
+local function getCharacterData(player)
+	local character = player.Character
+	if not character then
+		return nil, nil, nil
+	end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart")
+
+	return character, humanoid, root
+end
+
+local function getLocalCharacter()
+	local character, humanoid, root = getCharacterData(LocalPlayer)
+
+	if not character or not humanoid or humanoid.Health <= 0 or not root then
+		return nil, nil, nil
+	end
+
+	return character, humanoid, root
+end
+
+local function getViewerPosition()
+	local _, _, root = getLocalCharacter()
+
+	if root then
+		return root.Position
+	end
+
+	local camera = workspace.CurrentCamera
+	return camera and camera.CFrame.Position or Vector3.zero
+end
+
+local function isLocalPlayerAlive()
+	local character = LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	return humanoid ~= nil and humanoid.Health > 0
+end
+
+local CurrentRoundClient = nil
+
+do
+	local modules = ReplicatedStorage:FindFirstChild("Modules")
+	local moduleScript = modules and modules:FindFirstChild("CurrentRoundClient")
+
+	if moduleScript and moduleScript:IsA("ModuleScript") then
+		local success, result = pcall(require, moduleScript)
+
+		if success and type(result) == "table" then
+			CurrentRoundClient = result
+			log("CurrentRoundClient loaded.")
+		else
+			warn("[Anonymous Hub Murder V37] CurrentRoundClient failed to load:", result)
+		end
+	end
+end
+
+local function getPlayerDataTable()
+	if CurrentRoundClient and type(CurrentRoundClient.PlayerData) == "table" then
+		return CurrentRoundClient.PlayerData
+	end
+
+	return {}
+end
+
+local function getRoundInfoForPlayer(player)
+	local data = getPlayerDataTable()
+
+	local direct =
+		data[player.Name]
+		or data[player.UserId]
+		or data[tostring(player.UserId)]
+
+	if type(direct) == "table" then
+		return direct
+	end
+
+	for key, value in pairs(data) do
+		if type(value) == "table" then
+			local playerName =
+				value.PlayerName
+				or value.Name
+				or value.Username
+
+			local userId =
+				tonumber(value.UserId)
+				or tonumber(value.PlayerId)
+
+			if playerName == player.Name
+				or userId == player.UserId
+				or key == player.Name
+				or tonumber(key) == player.UserId
+			then
+				return value
+			end
+		end
+	end
+
+	return nil
+end
+
+local function isPlayerInActiveRound(player)
+	if not state.roundActive then
+		return false
+	end
+
+	local info = getRoundInfoForPlayer(player)
+
+	if type(info) ~= "table" then
+		return false
+	end
+
+	if info.Alive == false
+		or info.IsAlive == false
+		or info.Dead == true
+		or info.Eliminated == true
+	then
+		return false
+	end
+
+	return info.Role ~= nil
+end
+
+local function hasValidRoundData()
+	local data = getPlayerDataTable()
+
+	if next(data) == nil then
+		return false
+	end
+
+	for _, info in pairs(data) do
+		if type(info) == "table" and info.Role then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function refreshRoundState()
+	state.roundActive = hasValidRoundData()
+end
+
+if CurrentRoundClient and CurrentRoundClient.PlayerDataChanged then
+	local event = CurrentRoundClient.PlayerDataChanged
+
+	if typeof(event) == "Instance" and event:IsA("BindableEvent") then
+		connect(event.Event, refreshRoundState)
+	end
+end
+
+local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+local gameplayRemotes = remotes and remotes:FindFirstChild("Gameplay")
+local playerDataChanged = gameplayRemotes and gameplayRemotes:FindFirstChild("PlayerDataChanged")
+
+if playerDataChanged and playerDataChanged:IsA("RemoteEvent") then
+	connect(playerDataChanged.OnClientEvent, function()
+		task.defer(refreshRoundState)
+	end)
+end
+
+local function matchesWeaponName(name, accepted)
+	local normalized = lower(name)
+
+	if accepted[normalized] then
+		return true
+	end
+
+	for acceptedName in pairs(accepted) do
+		if string.find(normalized, acceptedName, 1, true) then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function findWeapon(container, accepted)
+	if not container then
+		return nil
+	end
+
+	for _, object in ipairs(container:GetDescendants()) do
+		if object:IsA("Tool") and matchesWeaponName(object.Name, accepted) then
+			return object
+		end
+	end
+
+	return nil
+end
+
+local function getRoleFromRoundData(player)
+	local data = getPlayerDataTable()
+
+	local info =
+		data[player.Name]
+		or data[player.UserId]
+		or data[tostring(player.UserId)]
+
+	if type(info) == "table" and info.Role then
+		return tostring(info.Role)
+	end
+
+	for key, value in pairs(data) do
+		if type(value) == "table" then
+			local playerName = value.PlayerName or value.Name or value.Username
+			local userId = value.UserId or value.PlayerId
+
+			if playerName == player.Name or tonumber(userId) == player.UserId then
+				if value.Role then
+					return tostring(value.Role)
+				end
+			end
+		elseif key == player.Name and type(value) == "string" then
+			return value
+		end
+	end
+
+	return nil
+end
+
+local function normalizeRole(role)
+	local normalized = lower(role)
+
+	if contains(normalized, "murder") or contains(normalized, "assassin") then
+		return "Murderer"
+	end
+
+	if contains(normalized, "sheriff") then
+		return "Sheriff"
+	end
+
+	if contains(normalized, "hero") then
+		return "Hero"
+	end
+
+	if contains(normalized, "innocent") then
+		return "Innocent"
+	end
+
+	return nil
+end
+
+local function findOriginalSheriffFromRoundData()
+	local data = getPlayerDataTable()
+
+	for key, value in pairs(data) do
+		if type(value) == "table" then
+			local normalizedRole = normalizeRole(value.Role)
+
+			if normalizedRole == "Sheriff" then
+				local userId =
+					tonumber(value.UserId)
+					or tonumber(value.PlayerId)
+
+				if userId then
+					return userId
+				end
+
+				local playerName =
+					value.PlayerName
+					or value.Name
+					or value.Username
+					or (type(key) == "string" and key or nil)
+
+				if playerName then
+					local player = Players:FindFirstChild(playerName)
+
+					if player then
+						return player.UserId
+					end
+				end
+			end
+		elseif type(value) == "string" and normalizeRole(value) == "Sheriff" then
+			if type(key) == "string" then
+				local player = Players:FindFirstChild(key)
+
+				if player then
+					return player.UserId
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
+local function updateOriginalSheriff()
+	if not state.roundActive then
+		state.originalSheriffUserId = nil
+		state.wasRoundActive = false
+		return
+	end
+
+	if not state.wasRoundActive then
+		state.wasRoundActive = true
+		state.originalSheriffUserId = findOriginalSheriffFromRoundData()
+	end
+
+	if state.originalSheriffUserId then
+		return
+	end
+
+	local fromData = findOriginalSheriffFromRoundData()
+
+	if fromData then
+		state.originalSheriffUserId = fromData
+		return
+	end
+
+	-- Fallback only at the beginning of the match:
+	-- whoever first holds the Gun is treated as the original Sheriff.
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		local backpack = player:FindFirstChildOfClass("Backpack")
+
+		local gun =
+			findWeapon(character, CONFIG.GUN_NAMES)
+			or findWeapon(backpack, CONFIG.GUN_NAMES)
+
+		if gun then
+			state.originalSheriffUserId = player.UserId
+			return
+		end
+	end
+end
+
+local function detectRole(player)
+	if not state.roundActive then
+		return "Lobby", "No active match"
+	end
+
+	local character = player.Character
+	local backpack = player:FindFirstChildOfClass("Backpack")
+
+	local knife =
+		findWeapon(character, CONFIG.KNIFE_NAMES)
+		or findWeapon(backpack, CONFIG.KNIFE_NAMES)
+
+	if knife then
+		return "Murderer", knife:GetFullName()
+	end
+
+	local gun =
+		findWeapon(character, CONFIG.GUN_NAMES)
+		or findWeapon(backpack, CONFIG.GUN_NAMES)
+
+	if gun then
+		local moduleRole = getRoleFromRoundData(player)
+		local normalizedRole = moduleRole and normalizeRole(moduleRole)
+
+		if state.originalSheriffUserId == player.UserId then
+			return "Sheriff", gun:GetFullName()
+		end
+
+		return "Hero", gun:GetFullName()
+	end
+
+	local moduleRole = getRoleFromRoundData(player)
+	local normalizedRole = moduleRole and normalizeRole(moduleRole)
+
+	if normalizedRole == "Murderer" then
+		return "Murderer", "CurrentRoundClient"
+	end
+
+	if normalizedRole == "Sheriff" or normalizedRole == "Hero" then
+		return "Innocent", "Not holding Gun"
+	end
+
+	if normalizedRole == "Innocent" then
+		return "Innocent", "CurrentRoundClient"
+	end
+
+	return "Innocent", "No Knife or Gun"
+end
+
+local function getCurrentGunHolder()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character, humanoid, root = getCharacterData(player)
+		local backpack = player:FindFirstChildOfClass("Backpack")
+
+		if character and humanoid and humanoid.Health > 0 and root then
+			local gun =
+				findWeapon(character, CONFIG.GUN_NAMES)
+				or findWeapon(backpack, CONFIG.GUN_NAMES)
+
+			if gun then
+				local role =
+					state.originalSheriffUserId == player.UserId
+					and "Sheriff"
+					or "Hero"
+
+				return player, gun, role
+			end
+		end
+	end
+
+	return nil, nil, nil
+end
+
+local function getRolePlayer(roleNames)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and isPlayerInActiveRound(player) then
+			local role = detectRole(player)
+
+			if roleNames[role] then
+				local character, humanoid, root = getCharacterData(player)
+
+				if character and humanoid and humanoid.Health > 0 and root then
+					return player
+				end
+			end
+		end
+	end
+
+	return nil
+end
+
+local function destroyHighlight(player)
+	local highlight = state.highlights[player]
+
+	if highlight then
+		highlight:Destroy()
+	end
+
+	state.highlights[player] = nil
+end
+
+local function getHighlight(player)
+	local character = player.Character
+
+	if not character then
+		return nil
+	end
+
+	local current = state.highlights[player]
+
+	if current and current.Parent == character then
+		return current
+	end
+
+	destroyHighlight(player)
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "AnonymousRoleHighlight"
+	highlight.Adornee = character
+	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.FillTransparency = 0.83
+	highlight.OutlineTransparency = 0
+	highlight.Parent = character
+
+	state.highlights[player] = highlight
+	return highlight
+end
+
+local function destroyNameTag(player)
+	local tag = state.nameTags[player]
+
+	if tag then
+		tag:Destroy()
+	end
+
+	state.nameTags[player] = nil
+end
+
+local function getRoleDisplay(role)
+	if role == "Murderer" then
+		return "MURDERER"
+	end
+
+	if role == "Sheriff" then
+		return "SHERIFF"
+	end
+
+	if role == "Hero" then
+		return "HERO"
+	end
+
+	if role == "Innocent" then
+		return "INNOCENT"
+	end
+
+	return "LOBBY"
+end
+
+local function getNameTag(player)
+	local character = player.Character
+
+	if not character then
+		return nil
+	end
+
+	local adornee =
+		character:FindFirstChild("Head")
+		or character:FindFirstChild("HumanoidRootPart")
+
+	if not adornee or not adornee:IsA("BasePart") then
+		return nil
+	end
+
+	local current = state.nameTags[player]
+
+	if current and current.Parent == adornee then
+		return current
+	end
+
+	destroyNameTag(player)
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "AnonymousRoleNameTag"
+	billboard.Adornee = adornee
+	billboard.AlwaysOnTop = true
+	billboard.LightInfluence = 0
+	billboard.Size = UDim2.fromScale(4.8, 1.05)
+	billboard.StudsOffset = Vector3.new(0, 3.0, 0)
+	billboard.MaxDistance = 180
+	billboard.Parent = adornee
+
+	local holder = Instance.new("Frame")
+	holder.Name = "Holder"
+	holder.AnchorPoint = Vector2.new(0.5, 0.5)
+	holder.Position = UDim2.fromScale(0.5, 0.5)
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.BackgroundTransparency = 1
+	holder.BorderSizePixel = 0
+	holder.Parent = billboard
+
+	local roleLabel = Instance.new("TextLabel")
+	roleLabel.Name = "Role"
+	roleLabel.BackgroundTransparency = 1
+	roleLabel.Position = UDim2.fromScale(0, 0)
+	roleLabel.Size = UDim2.fromScale(1, 0.42)
+	roleLabel.Font = Enum.Font.GothamBold
+	roleLabel.Text = "INNOCENT"
+	roleLabel.TextScaled = true
+	roleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	roleLabel.TextStrokeTransparency = 0.08
+	roleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	roleLabel.Parent = holder
+	disableAutoLocalization(roleLabel)
+
+	local roleConstraint = Instance.new("UITextSizeConstraint")
+	roleConstraint.MinTextSize = 7
+	roleConstraint.MaxTextSize = 12
+	roleConstraint.Parent = roleLabel
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Name = "PlayerName"
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Position = UDim2.fromScale(0, 0.42)
+	nameLabel.Size = UDim2.fromScale(1, 0.58)
+	nameLabel.Font = Enum.Font.GothamMedium
+	nameLabel.Text = player.DisplayName
+	nameLabel.TextScaled = true
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.TextStrokeTransparency = 0.08
+	nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	nameLabel.Parent = holder
+	disableAutoLocalization(nameLabel)
+
+	local nameConstraint = Instance.new("UITextSizeConstraint")
+	nameConstraint.MinTextSize = 7
+	nameConstraint.MaxTextSize = 14
+	nameConstraint.Parent = nameLabel
+
+	state.nameTags[player] = billboard
+	return billboard
+end
+
+local function lerpColor(a, b, alpha)
+	return Color3.new(
+		a.R + (b.R - a.R) * alpha,
+		a.G + (b.G - a.G) * alpha,
+		a.B + (b.B - a.B) * alpha
+	)
+end
+
+local function getAnimatedRoleColor(role)
+	local base = CONFIG.ROLE_COLORS[role] or CONFIG.ROLE_COLORS.Unknown
+
+	if role ~= "Murderer" and role ~= "Sheriff" and role ~= "Hero" then
+		return base
+	end
+
+	local phase = (math.sin(state.roleColorTime * 2.6) + 1) * 0.5
+
+	local lighter
+	local darker
+
+	if role == "Murderer" then
+		lighter = Color3.fromRGB(255, 115, 115)
+		darker = Color3.fromRGB(175, 20, 20)
+	elseif role == "Sheriff" then
+		lighter = Color3.fromRGB(115, 175, 255)
+		darker = Color3.fromRGB(25, 75, 190)
+	else
+		lighter = Color3.fromRGB(255, 240, 110)
+		darker = Color3.fromRGB(190, 130, 10)
+	end
+
+	local tonal = lerpColor(darker, lighter, phase)
+	return lerpColor(base, tonal, 0.68)
+end
+
+local function updateNameTag(player, role)
+	if player == LocalPlayer then
+		return
+	end
+
+	if not state.espEnabled or not player.Character then
+		destroyNameTag(player)
+		return
+	end
+
+	local _, _, targetRoot = getCharacterData(player)
+
+	if not targetRoot then
+		destroyNameTag(player)
+		return
+	end
+
+	local distance = (getViewerPosition() - targetRoot.Position).Magnitude
+
+	if distance > 180 then
+		destroyNameTag(player)
+		return
+	end
+
+	local billboard = getNameTag(player)
+
+	if not billboard then
+		return
+	end
+
+	local holder = billboard:FindFirstChild("Holder")
+	local roleLabel = holder and holder:FindFirstChild("Role")
+	local nameLabel = holder and holder:FindFirstChild("PlayerName")
+	local color = getAnimatedRoleColor(role)
+
+	if roleLabel then
+		roleLabel.Text = getRoleDisplay(role)
+		roleLabel.TextColor3 = color
+	end
+
+	if nameLabel then
+		nameLabel.TextColor3 = color
+		nameLabel.Text = string.format(
+			"%s  [%dM]",
+			player.DisplayName,
+			math.floor(distance + 0.5)
+		)
+	end
+
+end
+
+local function updateESP(player)
+	if player == LocalPlayer then
+		return
+	end
+
+	if not state.espEnabled then
+		destroyHighlight(player)
+		destroyNameTag(player)
+		return
+	end
+
+	if not player.Character then
+		destroyHighlight(player)
+		destroyNameTag(player)
+		return
+	end
+
+	local _, _, targetRoot = getCharacterData(player)
+
+	if not targetRoot then
+		destroyHighlight(player)
+		destroyNameTag(player)
+		return
+	end
+
+	local distance = (getViewerPosition() - targetRoot.Position).Magnitude
+
+	if distance > 180 then
+		destroyHighlight(player)
+		destroyNameTag(player)
+		return
+	end
+
+	local role, source = detectRole(player)
+	updateNameTag(player, role)
+	local highlight = getHighlight(player)
+
+	if not highlight then
+		return
+	end
+
+	local color = CONFIG.ROLE_COLORS[role] or CONFIG.ROLE_COLORS.Unknown
+
+	highlight.FillColor = color
+	highlight.OutlineColor = color
+
+	if state.lastRoles[player] ~= role then
+		state.lastRoles[player] = role
+		log(player.Name, "=>", role, "|", source)
+	end
+end
+
+local function getObjectPosition(object)
+	if object:IsA("BasePart") then
+		return object.Position
+	end
+
+	if object:IsA("Model") then
+		local success, pivot = pcall(function()
+			return object:GetPivot()
+		end)
+
+		if success then
+			return pivot.Position
+		end
+	end
+
+	return nil
+end
+
+local function isAvailableCoin(coin)
+	if not coin or not coin.Parent then
+		return false
+	end
+
+	if coin:GetAttribute("Delete") == true then
+		return false
+	end
+
+	if coin:GetAttribute("Collected") == true then
+		return false
+	end
+
+	if coin:GetAttribute("RoundEnd") == true then
+		return false
+	end
+
+	return getObjectPosition(coin) ~= nil
+end
+
+local function getCoins()
+	local result = {}
+
+	for _, coin in ipairs(CollectionService:GetTagged("CoinVisual")) do
+		if isAvailableCoin(coin) then
+			table.insert(result, coin)
+		end
+	end
+
+	if #result == 0 then
+		for _, object in ipairs(workspace:GetDescendants()) do
+			if (object:IsA("BasePart") or object:IsA("Model"))
+				and contains(object.Name, "coin")
+				and isAvailableCoin(object)
+			then
+				table.insert(result, object)
+			end
+		end
+	end
+
+	return result
+end
+
+local function findNearestCoin(root)
+	local nearest = nil
+	local nearestDistance = math.huge
+
+	for _, coin in ipairs(getCoins()) do
+		local position = getObjectPosition(coin)
+
+		if position then
+			local distance = (root.Position - position).Magnitude
+
+			if distance < nearestDistance then
+				nearest = coin
+				nearestDistance = distance
+			end
+		end
+	end
+
+	return nearest
+end
+
+local function cancelActiveCoinTween()
+	if state.activeCoinTween then
+		pcall(function()
+			state.activeCoinTween:Cancel()
+		end)
+
+		state.activeCoinTween = nil
+	end
+end
+
+local function resetCoinProgress()
+	state.collectedCoins = 0
+	state.collectedCoinIds = {}
+	state.respawningFromCoinLimit = false
+end
+
+local function stopFarmAndRespawn()
+	if state.respawningFromCoinLimit then
+		return
+	end
+
+	state.respawningFromCoinLimit = true
+	state.autoCoinEnabled = false
+	state.waitingForNextRound = true
+	cancelActiveCoinTween()
+
+	local character = LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid and humanoid.Health > 0 then
+		humanoid.Health = 0
+	elseif character then
+		character:BreakJoints()
+	end
+end
+
+local function registerCollectedCoin(coinId)
+	if not state.autoCoinEnabled
+		or not state.roundActive
+		or state.waitingForNextRound
+	then
+		return
+	end
+
+	local key = tostring(coinId or ("coin_" .. tostring(os.clock())))
+
+	if state.collectedCoinIds[key] then
+		return
+	end
+
+	state.collectedCoinIds[key] = true
+	state.collectedCoins += 1
+
+	if state.collectedCoins >= state.coinLimit then
+		stopFarmAndRespawn()
+	end
+end
+
+local function connectCoinEvents()
+	local gameplayCoinCollected =
+		gameplayRemotes
+		and gameplayRemotes:FindFirstChild("CoinCollected")
+
+	if gameplayCoinCollected and gameplayCoinCollected:IsA("RemoteEvent") then
+		connect(gameplayCoinCollected.OnClientEvent, function(coinId, currentAmount, requiredAmount)
+			if currentAmount == nil
+				or requiredAmount == nil
+				or tonumber(currentAmount) >= tonumber(requiredAmount)
+			then
+				registerCollectedCoin(coinId)
+			end
+		end)
+	end
+
+	local insight = ReplicatedStorage:FindFirstChild("Insight")
+	local insightCoinCollected = insight and insight:FindFirstChild("CoinCollected")
+	local insightRoundPlayed = insight and insight:FindFirstChild("RoundPlayed")
+
+	if insightCoinCollected and insightCoinCollected:IsA("RemoteEvent") then
+		connect(insightCoinCollected.OnClientEvent, function(coinId)
+			registerCollectedCoin(coinId)
+		end)
+	end
+
+	if insightRoundPlayed and insightRoundPlayed:IsA("RemoteEvent") then
+		connect(insightRoundPlayed.OnClientEvent, function()
+			state.waitingForNextRound = true
+			state.autoCoinEnabled = false
+			cancelActiveCoinTween()
+		end)
+	end
+end
+
+connectCoinEvents()
+
+local function moveSmoothlyBelowCoin(character, root, coinPosition)
+	cancelActiveCoinTween()
+
+	local targetPosition = coinPosition + Vector3.new(0, 0.6, 0)
+	local distance = (root.Position - targetPosition).Magnitude
+	local duration = math.clamp(
+		distance / CONFIG.COIN_MOVE_SPEED,
+		CONFIG.COIN_MIN_MOVE_TIME,
+		CONFIG.COIN_MAX_MOVE_TIME
+	)
+
+	root.AssemblyLinearVelocity = Vector3.zero
+	root.AssemblyAngularVelocity = Vector3.zero
+
+	local tween = TweenService:Create(
+		root,
+		TweenInfo.new(
+			duration,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.Out
+		),
+		{
+			CFrame = CFrame.new(targetPosition)
+		}
+	)
+
+	state.activeCoinTween = tween
+	tween:Play()
+
+	local completedState = tween.Completed:Wait()
+
+	if state.activeCoinTween == tween then
+		state.activeCoinTween = nil
+	end
+
+	return completedState == Enum.PlaybackState.Completed
+end
+
+local function farmCoin()
+	if not state.autoCoinEnabled
+		or not state.roundActive
+		or state.waitingForNextRound
+	then
+		cancelActiveCoinTween()
+		return
+	end
+
+	local character, humanoid, root = getLocalCharacter()
+
+	if not character or not humanoid or not root then
+		cancelActiveCoinTween()
+		return
+	end
+
+	local coin = findNearestCoin(root)
+
+	if not coin then
+		cancelActiveCoinTween()
+		return
+	end
+
+	local position = getObjectPosition(coin)
+
+	if not position then
+		return
+	end
+
+	local arrived = moveSmoothlyBelowCoin(character, root, position)
+
+	if arrived
+		and state.autoCoinEnabled
+		and state.roundActive
+		and not state.waitingForNextRound
+	then
+		-- Permanece um pouco na moeda para dar tempo de coletar
+		-- antes de procurar e seguir para a próxima.
+		task.wait(CONFIG.COIN_WAIT_AFTER_ARRIVAL)
+	end
+end
+
+local function isInsideIgnoredDisplay(object)
+	local current = object
+
+	while current and current ~= workspace do
+		if current.Name == "WeaponDisplays"
+			or current.Name == "GunDisplay"
+			or current.Name == "KnifeDisplay"
+		then
+			return true
+		end
+
+		current = current.Parent
+	end
+
+	return false
+end
+
+local function belongsToPlayer(object)
+	for _, player in ipairs(Players:GetPlayers()) do
+		local character = player.Character
+		local backpack = player:FindFirstChildOfClass("Backpack")
+
+		if character and object:IsDescendantOf(character) then
+			return true
+		end
+
+		if backpack and object:IsDescendantOf(backpack) then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function findGunRoot(object)
+	if object:IsA("BasePart") then
+		return object
+	end
+
+	if object:IsA("Tool") or object:IsA("Model") then
+		local root = object:FindFirstChild("HumanoidRootPart", true)
+			or object:FindFirstChild("Handle", true)
+			or object.PrimaryPart
+			or object:FindFirstChildWhichIsA("MeshPart", true)
+			or object:FindFirstChildWhichIsA("BasePart", true)
+
+		if root and root:IsA("BasePart") then
+			return root
+		end
+	end
+
+	return nil
+end
+
+local function hasGunAttachments(root)
+	-- Mantido por compatibilidade, mas não é mais obrigatório.
+	return root ~= nil
+end
+
+local function isExactGunDrop(object)
+	if not object or not object:IsA("BasePart") then
+		return false
+	end
+
+	if object.Name ~= "GunDrop" then
+		return false
+	end
+
+	if not object:IsDescendantOf(workspace) then
+		return false
+	end
+
+	if isInsideIgnoredDisplay(object) or belongsToPlayer(object) then
+		return false
+	end
+
+	-- Exact structure observed in the game:
+	-- GunDrop [Part]
+	--   Fire [Fire]
+	--   Mesh [SpecialMesh]
+	--   TouchInterest [TouchTransmitter]
+	local hasFire = object:FindFirstChildOfClass("Fire") ~= nil
+	local hasMesh = object:FindFirstChildOfClass("SpecialMesh") ~= nil
+	local hasTouch =
+		object:FindFirstChild("TouchInterest") ~= nil
+		or object:FindFirstChildOfClass("TouchTransmitter") ~= nil
+
+	return hasFire and hasMesh and hasTouch
+end
+
+local function findGunRoot(object)
+	if isExactGunDrop(object) then
+		return object
+	end
+
+	return nil
+end
+
+local function isDroppedSheriffGun(object)
+	return isExactGunDrop(object)
+end
+
+local function scanDroppedGun()
+	local nearestObject = nil
+	local nearestDistance = math.huge
+	local viewerPosition = getViewerPosition()
+
+	for _, object in ipairs(workspace:GetDescendants()) do
+		if isExactGunDrop(object) then
+			local distance = (viewerPosition - object.Position).Magnitude
+
+			if distance < nearestDistance then
+				nearestObject = object
+				nearestDistance = distance
+			end
+		end
+	end
+
+	state.droppedGunCandidate = nearestObject
+	state.droppedGunRoot = nearestObject
+	state.lastDroppedGunScan = os.clock()
+
+	return nearestObject, nearestObject
+end
+
+local function findNearestDroppedGun(_)
+	local cachedObject = state.droppedGunCandidate
+	local cachedRoot = state.droppedGunRoot
+
+	if cachedObject
+		and cachedObject.Parent
+		and cachedRoot
+		and cachedRoot.Parent
+		and isExactGunDrop(cachedObject)
+	then
+		return cachedObject, cachedRoot
+	end
+
+	if os.clock() - state.lastDroppedGunScan < state.droppedGunScanInterval then
+		return nil, nil
+	end
+
+	return scanDroppedGun()
+end
+
+local function moveLocalCharacter(targetCFrame)
+	local character, humanoid, root = getLocalCharacter()
+
+	if not character or not humanoid or not root then
+		return false
+	end
+
+	for _ = 1, 3 do
+		root.AssemblyLinearVelocity = Vector3.zero
+		root.AssemblyAngularVelocity = Vector3.zero
+		character:PivotTo(targetCFrame)
+		root.CFrame = targetCFrame
+		task.wait(0.08)
+	end
+
+	return (root.Position - targetCFrame.Position).Magnitude <= 12
+end
+
+local function teleportToDroppedGun()
+	if not state.roundActive then
+		return false, "No active match"
+	end
+
+	local currentHolder = getCurrentGunHolder()
+
+	if currentHolder then
+		return false, "Gun is currently held by " .. currentHolder.Name
+	end
+
+	local character, _, root = getLocalCharacter()
+
+	if not character or not root then
+		return false, "Character unavailable"
+	end
+
+	local gun, gunRoot = findNearestDroppedGun(root)
+
+	if not gun or not gunRoot then
+		gun, gunRoot = scanDroppedGun()
+	end
+
+	if not gun or not gunRoot then
+		return false, "Dropped Sheriff gun not found"
+	end
+
+	local targetCFrame =
+		CFrame.new(gunRoot.Position + Vector3.new(0, 2.2, 0))
+
+	local moved = moveLocalCharacter(targetCFrame)
+
+	if not moved then
+		return false, "Teleport was blocked"
+	end
+
+	log("Teleported to dropped gun:", gun:GetFullName())
+	return true, "Teleported to dropped Gun"
+end
+
+local function teleportToCurrentSheriffOrGun()
+	if not state.roundActive then
+		return false, "No active match"
+	end
+
+	local holder, _, holderRole = getCurrentGunHolder()
+
+	if holder then
+		if holder == LocalPlayer then
+			return true, "You are holding the Gun"
+		end
+
+		local _, humanoid, root = getCharacterData(holder)
+
+		if humanoid and humanoid.Health > 0 and root then
+			local moved = moveLocalCharacter(root.CFrame * CFrame.new(0, 0, 4))
+
+			if moved then
+				return true, "Teleported to current " .. holderRole
+			end
+
+			return false, "Teleport was blocked"
+		end
+	end
+
+	return teleportToDroppedGun()
+end
+
+local function teleportToRole(roleNames)
+	if not state.roundActive then
+		return false, "No active match"
+	end
+
+	local target = getRolePlayer(roleNames)
+
+	if not target then
+		return false, "Target not found"
+	end
+
+	local character, _, _ = getLocalCharacter()
+	local _, targetHumanoid, targetRoot = getCharacterData(target)
+
+	if not character or not targetHumanoid or targetHumanoid.Health <= 0 or not targetRoot then
+		return false, "Target unavailable"
+	end
+
+	character:PivotTo(
+		targetRoot.CFrame * CFrame.new(0, 0, 4)
+	)
+
+	return true
+end
+
+local function setRoundResult(textValue, duration)
+	state.resultStatus = textValue
+	state.resultStatusUntil = os.clock() + (duration or 3)
+end
+
+local function updateLocalRoundSnapshot()
+	if state.roundActive then
+		state.lastLocalRole = detectRole(LocalPlayer)
+		state.lastLocalAlive = isLocalPlayerAlive()
+	end
+end
+
+local function evaluateRoundEnd()
+	if not state.lastRoundActive or state.roundActive then
+		state.lastRoundActive = state.roundActive
+		return
+	end
+
+	local role = state.lastLocalRole
+	local survived = state.lastLocalAlive
+	local victory =
+		survived
+		and (
+			role == "Innocent"
+			or role == "Sheriff"
+			or role == "Hero"
+			or role == "Murderer"
+		)
+
+	setRoundResult(victory and "Victory" or "Round Ended", 3)
+	state.lastRoundActive = false
+end
+
+local function disconnectAntiAfk()
+	if state.antiAfkConnection then
+		state.antiAfkConnection:Disconnect()
+		state.antiAfkConnection = nil
+	end
+end
+
+local function enableAntiAfk()
+	disconnectAntiAfk()
+
+	state.antiAfkConnection = LocalPlayer.Idled:Connect(function()
+		if not state.antiAfkVisualEnabled or state.destroyed then
+			return
+		end
+
+		local camera = workspace.CurrentCamera
+
+		if not camera then
+			return
+		end
+
+		pcall(function()
+			VirtualUser:Button2Down(
+				Vector2.new(0, 0),
+				camera.CFrame
+			)
+
+			task.wait(1)
+
+			VirtualUser:Button2Up(
+				Vector2.new(0, 0),
+				camera.CFrame
+			)
+		end)
+	end)
+end
+
+local function setAntiAfkEnabled(enabled)
+	state.antiAfkVisualEnabled = enabled == true
+
+	if state.antiAfkVisualEnabled then
+		enableAntiAfk()
+	else
+		disconnectAntiAfk()
+	end
+end
+
+local function addCorner(object, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius)
+	corner.Parent = object
+	return corner
+end
+
+local function addStroke(object, color, transparency, thickness)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color
+	stroke.Transparency = transparency or 0
+	stroke.Thickness = thickness or 1
+	stroke.Parent = object
+	return stroke
+end
+
+local function createTextButton(parent, text, size, position)
+	local button = Instance.new("TextButton")
+	button.AutoButtonColor = false
+	button.BackgroundColor3 = Color3.fromRGB(30, 34, 39)
+	button.BorderSizePixel = 0
+	button.Size = size
+	button.Position = position
+	button.Font = Enum.Font.GothamMedium
+	button.Text = text
+	button.TextColor3 = Color3.fromRGB(235, 238, 242)
+	button.TextSize = 12
+	button.Parent = parent
+	disableAutoLocalization(button)
+
+	addCorner(button, 8)
+	addStroke(button, Color3.fromRGB(62, 70, 78), 0.35, 1)
+
+	button.MouseEnter:Connect(function()
+		TweenService:Create(
+			button,
+			TweenInfo.new(0.12),
+			{ BackgroundColor3 = Color3.fromRGB(38, 44, 50) }
+		):Play()
+	end)
+
+	button.MouseLeave:Connect(function()
+		TweenService:Create(
+			button,
+			TweenInfo.new(0.12),
+			{ BackgroundColor3 = Color3.fromRGB(30, 34, 39) }
+		):Play()
+	end)
+
+	return button
+end
+
+local function makeDraggable(handle, frame)
+	local dragging = false
+	local dragStart = nil
+	local startPosition = nil
+
+	handle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
+			dragging = true
+			dragStart = input.Position
+			startPosition = frame.Position
+		end
+	end)
+
+	handle.InputChanged:Connect(function(input)
+		if not dragging then
+			return
+		end
+
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
+			local delta = input.Position - dragStart
+
+			frame.Position = UDim2.new(
+				startPosition.X.Scale,
+				startPosition.X.Offset + delta.X,
+				startPosition.Y.Scale,
+				startPosition.Y.Offset + delta.Y
+			)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch
+		then
+			dragging = false
+		end
+	end)
+end
+
+local function createGui()
+	local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+	local old = playerGui:FindFirstChild("AnonymousHubMurderV30")
+
+	if old then
+		old:Destroy()
+	end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "AnonymousHubMurder"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = false
+	gui.Parent = playerGui
+
+	local main = Instance.new("Frame")
+	main.Name = "Main"
+	main.AnchorPoint = Vector2.new(0.5, 0.5)
+	main.Position = UDim2.fromScale(0.5, 0.5)
+	main.Size = UDim2.fromOffset(500, 350)
+	main.BackgroundColor3 = Color3.fromRGB(17, 20, 24)
+	main.BorderSizePixel = 0
+	main.ClipsDescendants = true
+	main.Parent = gui
+
+	local hubScale = Instance.new("UIScale")
+	hubScale.Name = "HubScale"
+	hubScale.Scale = 1
+	hubScale.Parent = main
+
+	addCorner(main, 14)
+	addStroke(main, Color3.fromRGB(45, 220, 90), 0.25, 1.2)
+
+	local topbar = Instance.new("Frame")
+	topbar.Name = "Topbar"
+	topbar.BackgroundColor3 = Color3.fromRGB(22, 26, 31)
+	topbar.BorderSizePixel = 0
+	topbar.Size = UDim2.new(1, 0, 0, 58)
+	topbar.Parent = main
+
+	local logo = Instance.new("ImageLabel")
+	logo.BackgroundTransparency = 1
+	logo.BorderSizePixel = 0
+	logo.Position = UDim2.fromOffset(12, 9)
+	logo.Size = UDim2.fromOffset(40, 40)
+	logo.Image = CONFIG.LOGO_ASSET_ID
+	logo.ScaleType = Enum.ScaleType.Crop
+	logo.Parent = topbar
+	addCorner(logo, 20)
+
+	local logoFallback = Instance.new("TextLabel")
+	logoFallback.BackgroundTransparency = 1
+	logoFallback.Size = UDim2.fromScale(1, 1)
+	logoFallback.Font = Enum.Font.GothamBold
+	logoFallback.Text = "A"
+	logoFallback.TextColor3 = Color3.fromRGB(65, 255, 110)
+	logoFallback.TextSize = 18
+	logoFallback.Visible = CONFIG.LOGO_ASSET_ID == ""
+	logoFallback.Parent = logo
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromOffset(62, 8)
+	title.Size = UDim2.fromOffset(190, 22)
+	title.Font = Enum.Font.GothamBold
+	title.Text = "Anonymous Hub Murder"
+	title.TextColor3 = Color3.fromRGB(240, 243, 247)
+	title.TextSize = 15
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Parent = topbar
+
+	local channel = Instance.new("TextLabel")
+	channel.BackgroundTransparency = 1
+	channel.Position = UDim2.fromOffset(62, 30)
+	channel.Size = UDim2.new(1, -155, 0, 18)
+	channel.Font = Enum.Font.Gotham
+	channel.Text = "▶  @AnonymousApks_Scripts"
+	channel.TextColor3 = Color3.fromRGB(155, 165, 175)
+	channel.TextSize = 11
+	channel.TextXAlignment = Enum.TextXAlignment.Left
+	channel.Parent = topbar
+
+	local gameStatusDot = Instance.new("Frame")
+	gameStatusDot.Name = "GameStatusDot"
+	gameStatusDot.AnchorPoint = Vector2.new(0, 0.5)
+	gameStatusDot.Position = UDim2.fromOffset(257, 19)
+	gameStatusDot.Size = UDim2.fromOffset(8, 8)
+	gameStatusDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	gameStatusDot.BorderSizePixel = 0
+	gameStatusDot.Parent = topbar
+	addCorner(gameStatusDot, 8)
+
+	local gameStatusText = Instance.new("TextLabel")
+	gameStatusText.Name = "GameStatusText"
+	gameStatusText.BackgroundTransparency = 1
+	gameStatusText.Position = UDim2.fromOffset(270, 8)
+	gameStatusText.Size = UDim2.fromOffset(78, 22)
+	gameStatusText.Font = Enum.Font.GothamMedium
+	gameStatusText.Text = "Lobby"
+	gameStatusText.TextColor3 = Color3.fromRGB(210, 215, 220)
+	gameStatusText.TextSize = 11
+	gameStatusText.TextXAlignment = Enum.TextXAlignment.Left
+	gameStatusText.Parent = topbar
+	disableAutoLocalization(gameStatusText)
+
+	local farmStatusDot = Instance.new("Frame")
+	farmStatusDot.Name = "FarmStatusDot"
+	farmStatusDot.AnchorPoint = Vector2.new(0, 0.5)
+	farmStatusDot.Position = UDim2.fromOffset(257, 39)
+	farmStatusDot.Size = UDim2.fromOffset(6, 6)
+	farmStatusDot.BackgroundColor3 = Color3.fromRGB(255, 215, 55)
+	farmStatusDot.BorderSizePixel = 0
+	farmStatusDot.Visible = false
+	farmStatusDot.Parent = topbar
+	addCorner(farmStatusDot, 6)
+
+	local farmStatusText = Instance.new("TextLabel")
+	farmStatusText.Name = "FarmStatusText"
+	farmStatusText.BackgroundTransparency = 1
+	farmStatusText.Position = UDim2.fromOffset(268, 29)
+	farmStatusText.Size = UDim2.fromOffset(105, 20)
+	farmStatusText.Font = Enum.Font.Gotham
+	farmStatusText.Text = "Auto Coin Farm"
+	farmStatusText.TextColor3 = Color3.fromRGB(255, 215, 55)
+	farmStatusText.TextSize = 10
+	farmStatusText.TextXAlignment = Enum.TextXAlignment.Left
+	farmStatusText.Visible = false
+	farmStatusText.Parent = topbar
+	disableAutoLocalization(farmStatusText)
+
+	local minimize = createTextButton(
+		topbar,
+		"—",
+		UDim2.fromOffset(32, 30),
+		UDim2.new(1, -76, 0, 14)
+	)
+
+	local close = createTextButton(
+		topbar,
+		"×",
+		UDim2.fromOffset(32, 30),
+		UDim2.new(1, -40, 0, 14)
+	)
+
+	close.TextColor3 = Color3.fromRGB(255, 100, 100)
+
+	local sidebar = Instance.new("Frame")
+	sidebar.BackgroundColor3 = Color3.fromRGB(20, 23, 28)
+	sidebar.BorderSizePixel = 0
+	sidebar.Position = UDim2.fromOffset(0, 58)
+	sidebar.Size = UDim2.new(0, 122, 1, -58)
+	sidebar.Parent = main
+
+	local content = Instance.new("Frame")
+	content.BackgroundTransparency = 1
+	content.Position = UDim2.fromOffset(122, 58)
+	content.Size = UDim2.new(1, -122, 1, -58)
+	content.Parent = main
+
+	local pages = {}
+	local tabButtons = {}
+
+	local function createPage(name)
+		local page = Instance.new("Frame")
+		page.Name = name
+		page.BackgroundTransparency = 1
+		page.Size = UDim2.fromScale(1, 1)
+		page.Visible = false
+		page.Parent = content
+
+		pages[name] = page
+		return page
+	end
+
+	local function createTab(name, text, y)
+		local button = createTextButton(
+			sidebar,
+			text,
+			UDim2.new(1, -16, 0, 36),
+			UDim2.fromOffset(8, y)
+		)
+
+		button.TextXAlignment = Enum.TextXAlignment.Left
+		button.Text = "   " .. text
+		tabButtons[name] = button
+
+		return button
+	end
+
+	local farmPage = createPage("Farm")
+	local espPage = createPage("ESP")
+
+	local tpPage = Instance.new("ScrollingFrame")
+	tpPage.Name = "TP"
+	tpPage.BackgroundTransparency = 1
+	tpPage.BorderSizePixel = 0
+	tpPage.Size = UDim2.fromScale(1, 1)
+	tpPage.CanvasSize = UDim2.fromOffset(0, 390)
+	tpPage.AutomaticCanvasSize = Enum.AutomaticSize.None
+	tpPage.ScrollingDirection = Enum.ScrollingDirection.Y
+	tpPage.ScrollBarThickness = 4
+	tpPage.ScrollBarImageColor3 = Color3.fromRGB(70, 255, 115)
+	tpPage.ElasticBehavior = Enum.ElasticBehavior.Never
+	tpPage.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	tpPage.Visible = false
+	tpPage.Parent = content
+	pages.TP = tpPage
+
+	local settingsPage = createPage("Settings")
+
+	createTab("Farm", "Farm", 14)
+	createTab("ESP", "ESP", 58)
+	createTab("TP", "TP", 102)
+	createTab("Settings", "Settings", 146)
+
+	local function showPage(pageName)
+		for name, page in pairs(pages) do
+			page.Visible = name == pageName
+		end
+
+		for name, button in pairs(tabButtons) do
+			button.BackgroundColor3 = name == pageName
+				and Color3.fromRGB(35, 62, 45)
+				or Color3.fromRGB(30, 34, 39)
+
+			button.TextColor3 = name == pageName
+				and Color3.fromRGB(85, 255, 130)
+				or Color3.fromRGB(235, 238, 242)
+		end
+	end
+
+	for name, button in pairs(tabButtons) do
+		button.Activated:Connect(function()
+			showPage(name)
+		end)
+	end
+
+	local function createSectionTitle(parent, text, y)
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Position = UDim2.fromOffset(18, y)
+		label.Size = UDim2.new(1, -36, 0, 22)
+		label.Font = Enum.Font.GothamBold
+		label.Text = text
+		label.TextColor3 = Color3.fromRGB(235, 240, 245)
+		label.TextSize = 14
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Parent = parent
+		return label
+	end
+
+	local function createDescription(parent, text, y)
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Position = UDim2.fromOffset(18, y)
+		label.Size = UDim2.new(1, -36, 0, 36)
+		label.Font = Enum.Font.Gotham
+		label.Text = text
+		label.TextColor3 = Color3.fromRGB(150, 160, 170)
+		label.TextSize = 11
+		label.TextWrapped = true
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.TextYAlignment = Enum.TextYAlignment.Top
+		label.Parent = parent
+		return label
+	end
+
+	createSectionTitle(farmPage, "Coin Farm", 18)
+	createDescription(
+		farmPage,
+		"Automatically moves smoothly to nearby coins.",
+		47
+	)
+
+	local autoCoinButton = createTextButton(
+		farmPage,
+		"",
+		UDim2.new(1, -36, 0, 42),
+		UDim2.fromOffset(18, 98)
+	)
+
+	local antiAfkRow = Instance.new("Frame")
+	antiAfkRow.BackgroundColor3 = Color3.fromRGB(24, 28, 33)
+	antiAfkRow.BorderSizePixel = 0
+	antiAfkRow.Position = UDim2.fromOffset(18, 154)
+	antiAfkRow.Size = UDim2.new(1, -36, 0, 46)
+	antiAfkRow.Parent = farmPage
+	addCorner(antiAfkRow, 9)
+	addStroke(antiAfkRow, Color3.fromRGB(62, 70, 78), 0.45, 1)
+
+	local antiAfkLabel = Instance.new("TextLabel")
+	antiAfkLabel.BackgroundTransparency = 1
+	antiAfkLabel.Position = UDim2.fromOffset(12, 0)
+	antiAfkLabel.Size = UDim2.new(1, -110, 1, 0)
+	antiAfkLabel.Font = Enum.Font.GothamMedium
+	antiAfkLabel.Text = "ANTI AFK"
+	antiAfkLabel.TextColor3 = Color3.fromRGB(230, 235, 240)
+	antiAfkLabel.TextSize = 11
+	antiAfkLabel.TextXAlignment = Enum.TextXAlignment.Left
+	antiAfkLabel.Parent = antiAfkRow
+	disableAutoLocalization(antiAfkLabel)
+
+	local antiAfkButton = Instance.new("TextButton")
+	antiAfkButton.Name = "AntiAfkToggle"
+	antiAfkButton.AutoButtonColor = false
+	antiAfkButton.BackgroundColor3 = Color3.fromRGB(31, 36, 42)
+	antiAfkButton.BorderSizePixel = 0
+	antiAfkButton.Size = UDim2.fromOffset(24, 24)
+	antiAfkButton.Position = UDim2.new(1, -72, 0.5, -12)
+	antiAfkButton.Text = ""
+	antiAfkButton.Parent = antiAfkRow
+	addCorner(antiAfkButton, 24)
+	addStroke(antiAfkButton, Color3.fromRGB(115, 65, 65), 0.15, 1)
+
+	local antiAfkDot = Instance.new("Frame")
+	antiAfkDot.Name = "Dot"
+	antiAfkDot.AnchorPoint = Vector2.new(0.5, 0.5)
+	antiAfkDot.Position = UDim2.fromScale(0.5, 0.5)
+	antiAfkDot.Size = UDim2.fromOffset(12, 12)
+	antiAfkDot.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+	antiAfkDot.BorderSizePixel = 0
+	antiAfkDot.Parent = antiAfkButton
+	addCorner(antiAfkDot, 12)
+
+	local antiAfkAutoLabel = Instance.new("TextLabel")
+	antiAfkAutoLabel.BackgroundTransparency = 1
+	antiAfkAutoLabel.Position = UDim2.new(1, -44, 0, 0)
+	antiAfkAutoLabel.Size = UDim2.fromOffset(40, 46)
+	antiAfkAutoLabel.Font = Enum.Font.GothamMedium
+	antiAfkAutoLabel.Text = "AUTO"
+	antiAfkAutoLabel.TextColor3 = Color3.fromRGB(210, 215, 220)
+	antiAfkAutoLabel.TextSize = 10
+	antiAfkAutoLabel.TextXAlignment = Enum.TextXAlignment.Left
+	antiAfkAutoLabel.Parent = antiAfkRow
+	disableAutoLocalization(antiAfkAutoLabel)
+
+
+	createSectionTitle(espPage, "ESP", 18)
+	createDescription(
+		espPage,
+		"Colored ESP, player names and distance up to 180M.",
+		47
+	)
+
+	local espButton = createTextButton(
+		espPage,
+		"",
+		UDim2.new(1, -36, 0, 42),
+		UDim2.fromOffset(18, 98)
+	)
+
+	local legend = Instance.new("TextLabel")
+	legend.BackgroundTransparency = 1
+	legend.Position = UDim2.fromOffset(18, 155)
+	legend.Size = UDim2.new(1, -36, 0, 100)
+	legend.Font = Enum.Font.Gotham
+	legend.Text =
+		"● White: Lobby\n"
+		.. "● Red: Murderer\n"
+		.. "● Blue: Sheriff\n"
+		.. "● Yellow: Hero\n"
+		.. "● Green: Innocent"
+	legend.TextColor3 = Color3.fromRGB(190, 198, 205)
+	legend.TextSize = 11
+	legend.TextXAlignment = Enum.TextXAlignment.Left
+	legend.TextYAlignment = Enum.TextYAlignment.Top
+	legend.Parent = espPage
+
+	createSectionTitle(tpPage, "TP", 18)
+	createDescription(
+		tpPage,
+		"Manual teleports once. Auto repeats. Dropped Gun targets the exact GunDrop part in the active map.",
+		47
+	)
+
+	local function createTPRow(labelText, y)
+		local row = Instance.new("Frame")
+		row.BackgroundColor3 = Color3.fromRGB(24, 28, 33)
+		row.BorderSizePixel = 0
+		row.Position = UDim2.fromOffset(18, y)
+		row.Size = UDim2.new(1, -40, 0, 46)
+		row.Parent = tpPage
+		addCorner(row, 9)
+		addStroke(row, Color3.fromRGB(62, 70, 78), 0.45, 1)
+
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Position = UDim2.fromOffset(12, 0)
+		label.Size = UDim2.new(1, -190, 1, 0)
+		label.Font = Enum.Font.GothamMedium
+		label.Text = labelText
+		label.TextColor3 = Color3.fromRGB(230, 235, 240)
+		label.TextSize = 11
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Parent = row
+		disableAutoLocalization(label)
+
+		local manualButton = createTextButton(
+			row,
+			"MANUAL",
+			UDim2.fromOffset(78, 30),
+			UDim2.new(1, -174, 0.5, -15)
+		)
+
+		local autoButton = Instance.new("TextButton")
+		autoButton.Name = "AutoToggle"
+		autoButton.AutoButtonColor = false
+		autoButton.BackgroundColor3 = Color3.fromRGB(31, 36, 42)
+		autoButton.BorderSizePixel = 0
+		autoButton.Size = UDim2.fromOffset(24, 24)
+		autoButton.Position = UDim2.new(1, -72, 0.5, -12)
+		autoButton.Text = ""
+		autoButton.Parent = row
+		addCorner(autoButton, 24)
+		addStroke(autoButton, Color3.fromRGB(95, 105, 115), 0.15, 1)
+
+		local autoDot = Instance.new("Frame")
+		autoDot.Name = "Dot"
+		autoDot.AnchorPoint = Vector2.new(0.5, 0.5)
+		autoDot.Position = UDim2.fromScale(0.5, 0.5)
+		autoDot.Size = UDim2.fromOffset(12, 12)
+		autoDot.BackgroundColor3 = Color3.fromRGB(255, 75, 75)
+		autoDot.BorderSizePixel = 0
+		autoDot.Parent = autoButton
+		addCorner(autoDot, 12)
+
+		local autoLabel = Instance.new("TextLabel")
+		autoLabel.BackgroundTransparency = 1
+		autoLabel.Position = UDim2.new(1, -44, 0, 0)
+		autoLabel.Size = UDim2.fromOffset(40, 46)
+		autoLabel.Font = Enum.Font.GothamMedium
+		autoLabel.Text = "AUTO"
+		autoLabel.TextColor3 = Color3.fromRGB(210, 215, 220)
+		autoLabel.TextSize = 10
+		autoLabel.TextXAlignment = Enum.TextXAlignment.Left
+		autoLabel.Parent = row
+		disableAutoLocalization(autoLabel)
+
+		return manualButton, autoButton
+	end
+
+	local droppedGunButton, droppedGunAutoButton =
+		createTPRow("DROPPED GUN", 92)
+
+	local murdererButton, murdererAutoButton =
+		createTPRow("MURDERER", 146)
+
+	local sheriffButton, sheriffAutoButton =
+		createTPRow("SHERIFF / HERO / GUN", 200)
+
+	local innocentButton, innocentAutoButton =
+		createTPRow("INNOCENT", 254)
+
+	local status = Instance.new("TextLabel")
+	status.BackgroundTransparency = 1
+	status.Position = UDim2.fromOffset(18, 312)
+	status.Size = UDim2.new(1, -40, 0, 42)
+	status.Font = Enum.Font.Gotham
+	status.Text = ""
+	status.TextColor3 = Color3.fromRGB(155, 165, 175)
+	status.TextSize = 11
+	status.TextWrapped = true
+	status.TextXAlignment = Enum.TextXAlignment.Left
+	status.TextYAlignment = Enum.TextYAlignment.Top
+	status.Parent = tpPage
+	disableAutoLocalization(status)
+
+
+	createSectionTitle(settingsPage, "Settings", 18)
+	createDescription(
+		settingsPage,
+		"Adjust the hub size and switch between normal and compact mode.",
+		47
+	)
+
+	local sizeLabel = Instance.new("TextLabel")
+	sizeLabel.BackgroundTransparency = 1
+	sizeLabel.Position = UDim2.fromOffset(18, 92)
+	sizeLabel.Size = UDim2.new(1, -36, 0, 24)
+	sizeLabel.Font = Enum.Font.GothamMedium
+	sizeLabel.Text = "Hub Size: 100%"
+	sizeLabel.TextColor3 = Color3.fromRGB(235, 240, 245)
+	sizeLabel.TextSize = 12
+	sizeLabel.TextXAlignment = Enum.TextXAlignment.Left
+	sizeLabel.Parent = settingsPage
+
+	local minusButton = createTextButton(
+		settingsPage,
+		"-",
+		UDim2.fromOffset(52, 36),
+		UDim2.fromOffset(18, 122)
+	)
+
+	local plusButton = createTextButton(
+		settingsPage,
+		"+",
+		UDim2.fromOffset(52, 36),
+		UDim2.fromOffset(78, 122)
+	)
+
+	local resetSizeButton = createTextButton(
+		settingsPage,
+		"RESET SIZE",
+		UDim2.fromOffset(112, 36),
+		UDim2.fromOffset(138, 122)
+	)
+
+	local compactButton = createTextButton(
+		settingsPage,
+		"COMPACT MODE: OFF",
+		UDim2.new(1, -36, 0, 38),
+		UDim2.fromOffset(18, 172)
+	)
+
+	local scaleValue = 1
+	local compactMode = false
+
+	local function applyScale()
+		hubScale.Scale = scaleValue
+		sizeLabel.Text = string.format("Hub Size: %d%%", math.floor(scaleValue * 100 + 0.5))
+	end
+
+	minusButton.Activated:Connect(function()
+		scaleValue = math.max(0.65, scaleValue - 0.05)
+		applyScale()
+	end)
+
+	plusButton.Activated:Connect(function()
+		scaleValue = math.min(1.25, scaleValue + 0.05)
+		applyScale()
+	end)
+
+	resetSizeButton.Activated:Connect(function()
+		scaleValue = 1
+		applyScale()
+	end)
+
+	compactButton.Activated:Connect(function()
+		compactMode = not compactMode
+		compactButton.Text = compactMode and "COMPACT MODE: ON" or "COMPACT MODE: OFF"
+
+		TweenService:Create(
+			main,
+			TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Size = compactMode
+					and UDim2.fromOffset(430, 300)
+					or UDim2.fromOffset(500, 350)
+			}
+		):Play()
+	end)
+
+	applyScale()
+
+
+	local function setTemporaryStatus(text, success)
+		status.Text = text
+		status.TextColor3 = success
+			and Color3.fromRGB(80, 255, 125)
+			or Color3.fromRGB(255, 105, 105)
+
+		task.delay(1.8, function()
+			if status.Parent then
+				status.Text = ""
+			end
+		end)
+	end
+
+	local function setAutoButtonVisual(button, enabled)
+		local dot = button:FindFirstChild("Dot")
+
+		if dot then
+			dot.BackgroundColor3 = enabled
+				and Color3.fromRGB(70, 255, 115)
+				or Color3.fromRGB(255, 75, 75)
+		end
+
+		local stroke = button:FindFirstChildOfClass("UIStroke")
+		if stroke then
+			stroke.Color = enabled
+				and Color3.fromRGB(70, 255, 115)
+				or Color3.fromRGB(115, 65, 65)
+		end
+	end
+
+	local function refreshButtons()
+		autoCoinButton.Text = state.autoCoinEnabled
+			and "AUTO COIN: ON"
+			or "AUTO COIN: OFF"
+
+		autoCoinButton.TextColor3 = state.autoCoinEnabled
+			and Color3.fromRGB(80, 255, 125)
+			or Color3.fromRGB(255, 110, 110)
+
+		espButton.Text = state.espEnabled
+			and "ESP: ON"
+			or "ESP: OFF"
+
+		espButton.TextColor3 = state.espEnabled
+			and Color3.fromRGB(80, 255, 125)
+			or Color3.fromRGB(255, 110, 110)
+
+
+		if state.resultStatus and os.clock() < state.resultStatusUntil then
+			gameStatusDot.BackgroundColor3 = Color3.fromRGB(255, 215, 55)
+			gameStatusText.Text = state.resultStatus
+			gameStatusText.TextColor3 = Color3.fromRGB(255, 225, 95)
+		elseif state.roundActive then
+			state.resultStatus = nil
+			gameStatusDot.BackgroundColor3 = Color3.fromRGB(70, 255, 115)
+			gameStatusText.Text = "In Match"
+			disableAutoLocalization(gameStatusText)
+			gameStatusText.TextColor3 = Color3.fromRGB(110, 255, 145)
+		else
+			state.resultStatus = nil
+			gameStatusDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			gameStatusText.Text = "Lobby"
+			disableAutoLocalization(gameStatusText)
+			gameStatusText.TextColor3 = Color3.fromRGB(220, 225, 230)
+		end
+
+		local showFarmStatus = state.roundActive and state.autoCoinEnabled
+		farmStatusDot.Visible = showFarmStatus
+		farmStatusText.Visible = showFarmStatus
+
+		setAutoButtonVisual(droppedGunAutoButton, state.autoTP.DroppedGun)
+		setAutoButtonVisual(murdererAutoButton, state.autoTP.Murderer)
+		setAutoButtonVisual(sheriffAutoButton, state.autoTP.Sheriff)
+		setAutoButtonVisual(innocentAutoButton, state.autoTP.Innocent)
+
+		local antiAfkDotObject = antiAfkButton:FindFirstChild("Dot")
+		if antiAfkDotObject then
+			antiAfkDotObject.BackgroundColor3 = state.antiAfkVisualEnabled
+				and Color3.fromRGB(70, 255, 115)
+				or Color3.fromRGB(255, 75, 75)
+		end
+
+		local antiAfkStroke = antiAfkButton:FindFirstChildOfClass("UIStroke")
+		if antiAfkStroke then
+			antiAfkStroke.Color = state.antiAfkVisualEnabled
+				and Color3.fromRGB(70, 255, 115)
+				or Color3.fromRGB(115, 65, 65)
+		end
+
+	end
+
+	autoCoinButton.Activated:Connect(function()
+		state.autoCoinEnabled = not state.autoCoinEnabled
+		state.lastCoinRecoveryTeleport = os.clock()
+
+		if state.autoCoinEnabled then
+			resetCoinProgress()
+			state.waitingForNextRound =
+				not state.roundActive
+				or not isLocalPlayerAlive()
+		else
+			cancelActiveCoinTween()
+		end
+
+		refreshButtons()
+	end)
+
+	antiAfkButton.Activated:Connect(function()
+		setAntiAfkEnabled(not state.antiAfkVisualEnabled)
+		refreshButtons()
+	end)
+
+	espButton.Activated:Connect(function()
+		state.espEnabled = not state.espEnabled
+
+		if not state.espEnabled then
+			for player in pairs(state.highlights) do
+				destroyHighlight(player)
+			end
+
+			for player in pairs(state.nameTags) do
+				destroyNameTag(player)
+			end
+		end
+
+		refreshButtons()
+	end)
+
+
+	droppedGunButton.Activated:Connect(function()
+		local success, message = teleportToDroppedGun()
+		setTemporaryStatus(message or "Teleported", success)
+	end)
+
+	murdererButton.Activated:Connect(function()
+		local success, message = teleportToRole({ Murderer = true })
+		setTemporaryStatus(
+			success and "Teleported to Murderer" or message,
+			success
+		)
+	end)
+
+	sheriffButton.Activated:Connect(function()
+		local success, message = teleportToCurrentSheriffOrGun()
+		setTemporaryStatus(message, success)
+	end)
+
+	innocentButton.Activated:Connect(function()
+		local success, message = teleportToRole({ Innocent = true })
+		setTemporaryStatus(
+			success and "Teleported to active Innocent" or message,
+			success
+		)
+	end)
+
+	local function bindAutoToggle(button, key)
+		button.Activated:Connect(function()
+			state.autoTP[key] = not state.autoTP[key]
+			refreshButtons()
+		end)
+	end
+
+	bindAutoToggle(droppedGunAutoButton, "DroppedGun")
+	bindAutoToggle(murdererAutoButton, "Murderer")
+	bindAutoToggle(sheriffAutoButton, "Sheriff")
+	bindAutoToggle(innocentAutoButton, "Innocent")
+
+	minimize.Activated:Connect(function()
+		state.minimized = not state.minimized
+
+		TweenService:Create(
+			main,
+			TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Size = state.minimized
+					and UDim2.fromOffset(500, 58)
+					or UDim2.fromOffset(500, 350)
+			}
+		):Play()
+	end)
+
+	close.Activated:Connect(function()
+		state.destroyed = true
+		setAntiAfkEnabled(false)
+		gui:Destroy()
+	end)
+
+	makeDraggable(topbar, main)
+	refreshButtons()
+	showPage("Farm")
+
+	task.spawn(function()
+		while not state.destroyed and gui.Parent do
+			refreshButtons()
+			task.wait(0.25)
+		end
+	end)
+
+	return gui
+end
+refreshRoundState()
+
+local gui = createGui()
+
+connect(LocalPlayer.CharacterAdded, function(character)
+	state.waitingForNextRound = true
+	cancelActiveCoinTween()
+
+	task.wait(0.35)
+
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			updateESP(player)
+		end
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	destroyHighlight(player)
+	destroyNameTag(player)
+	state.lastRoles[player] = nil
+end)
+
+connect(RunService.Heartbeat, function(deltaTime)
+	state.roleColorTime += deltaTime
+end)
+
+task.spawn(function()
+	while not state.destroyed do
+		local wasActive = state.roundActive
+		refreshRoundState()
+		updateOriginalSheriff()
+
+		if state.roundActive then
+			state.lastRoundActive = true
+			updateLocalRoundSnapshot()
+
+			if state.waitingForNextRound and isLocalPlayerAlive() then
+				state.waitingForNextRound = false
+				resetCoinProgress()
+				state.lastCoinRecoveryTeleport = os.clock()
+			end
+		elseif wasActive or state.lastRoundActive then
+			evaluateRoundEnd()
+			state.waitingForNextRound = true
+			cancelActiveCoinTween()
+		end
+
+		for _, player in ipairs(Players:GetPlayers()) do
+			updateESP(player)
+		end
+
+		task.wait(CONFIG.ROLE_UPDATE_INTERVAL)
+	end
+end)
+
+task.spawn(function()
+	while not state.destroyed do
+		if state.roundActive then
+			if state.autoTP.DroppedGun then
+				teleportToDroppedGun()
+			end
+
+			if state.autoTP.Murderer then
+				teleportToRole({ Murderer = true })
+			end
+
+			if state.autoTP.Sheriff then
+				teleportToCurrentSheriffOrGun()
+			end
+
+			if state.autoTP.Innocent then
+				teleportToRole({ Innocent = true })
+			end
+		end
+
+		task.wait(state.autoTPInterval)
+	end
+end)
+
+task.spawn(function()
+	while not state.destroyed do
+		farmCoin()
+
+		if state.autoCoinEnabled
+			and state.roundActive
+			and not state.waitingForNextRound
+			and isLocalPlayerAlive()
+			and os.clock() - state.lastCoinRecoveryTeleport >= state.coinRecoveryInterval
+		then
+			state.lastCoinRecoveryTeleport = os.clock()
+
+			local success = teleportToRole({ Innocent = true })
+
+			if not success then
+				-- Retry later instead of repeatedly teleporting every frame.
+				state.lastCoinRecoveryTeleport =
+					os.clock() - state.coinRecoveryInterval + 3
+			end
+		end
+
+		task.wait(CONFIG.COIN_INTERVAL)
+	end
+end)
+
+script.Destroying:Connect(function()
+	state.destroyed = true
+	cancelActiveCoinTween()
+	setAntiAfkEnabled(false)
+
+
+	for _, connection in ipairs(state.connections) do
+		connection:Disconnect()
+	end
+
+	for player in pairs(state.highlights) do
+		destroyHighlight(player)
+	end
+
+
+	if gui then
+		gui:Destroy()
+	end
+end)
